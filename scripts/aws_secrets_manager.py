@@ -49,9 +49,6 @@ def initialize_clients():
 #        aws_client = session.client('secretsmanager')
 #        print('.6.')
 
-
-        
-
         # Suppress SSL warnings if needed
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
