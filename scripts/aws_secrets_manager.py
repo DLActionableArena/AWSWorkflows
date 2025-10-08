@@ -9,6 +9,8 @@ AWS_SECURITY_TOKEN_SERVICE='sts'
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY_ID = os.getenv("AWS_SECRET_ACCESS_KEY_ID")
+AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
+AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 
 aws_client = None
 
@@ -18,13 +20,29 @@ def initialize_clients():
 
     try:
         # Initialize AWS client
-        aws_client = boto3.client(
-            'secretsmanager',
-            region_name=AWS_REGION,
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
-            verify=False  # Disable SSL verification (not recommended for production
+#        aws_client = boto3.client(
+#            'secretsmanager',
+#            region_name=AWS_REGION,
+#            #aws_access_key_id=AWS_ACCESS_KEY_ID,
+#            #aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID,
+#            verify=False  # Disable SSL verification (not recommended for production
+#        )
+
+        sts_client = boto3.client('sts')
+        assumed_role = sts_client.assume_role(
+            RoleArn=AWS_ROLE_TO_ASSUME,
+            RoleSessionName="AssumeRoleSession1"
         )
+        credentials = assumed_role['Credentials']
+        session = boto3.Session(
+            aws_access_key_id=credentials['AccessKeyId'],
+            aws_secret_access_key=credentials['SecretAccessKey'],
+            aws_session_token=credentials['SessionToken'],
+            region_name=AWS_REGION
+        )
+
+        aws_client = session.client('secretsmanager')
+
 
         # Suppress SSL warnings if needed
         import urllib3
