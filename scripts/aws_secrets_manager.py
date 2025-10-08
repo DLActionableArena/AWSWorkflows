@@ -115,27 +115,27 @@ def main():
     initialize_clients()
     print("Clients initialized successfully")
 
-    # secrets = get_all_aws_secrets()
-    # print(f"Retrieved {len(secrets)} secrets from AWS Secrets Manager: ", secrets)
+    secrets = get_all_aws_secrets()
+    print(f"Retrieved {len(secrets)} secrets from AWS Secrets Manager: ", secrets)
 
-    # for i, secret in enumerate(secrets, 1):
-    #     secret_name = secret['Name']
-    #     print(f"\n[{i}] Secret Name: {secret_name}")
+    for i, secret in enumerate(secrets, 1):
+        secret_name = secret['Name']
+        print(f"\n[{i}] Secret Name: {secret_name}")
 
-    #     try:
-    #         secret_value = get_secret_value(secret_name)
-    #         print(f"Secret Value: {secret_value}")
+        try:
+            secret_value = get_secret_value(secret_name)
+            print(f"Secret Value: {secret_value}")
 
-    #         get_secret_details(secret_name)
+            get_secret_details(secret_name)
 
-    #         rotation_details = get_secret_rotation_info(secret_name)
-    #         if rotation_details:
-    #             print(f"Rotation Details: {rotation_details}")
-    #         else:
-    #             print("No rotation details available")
-    #     except Exception as e:
-    #         print(f"Error retrieving details for secret {secret_name}: {e}")
-    #         continue
+            rotation_details = get_secret_rotation_info(secret_name)
+            if rotation_details:
+                print(f"Rotation Details: {rotation_details}")
+            else:
+                print("No rotation details available")
+        except Exception as e:
+            print(f"Error retrieving details for secret {secret_name}: {e}")
+            continue
 
 if __name__ == "__main__":
     main()
