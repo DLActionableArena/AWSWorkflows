@@ -127,7 +127,7 @@ def get_all_aws_secrets():
     for page in paginator.paginate():
         secrets_details.extend(page.get('SecretList', []))
 
-    for i, secret in enumerate(secrets_details, 1):
+    for secret in secrets_details:
         try:
             secret_name = secret['Name']
             secrets[secret_name] = json.loads(get_secret_value(secret_name))
