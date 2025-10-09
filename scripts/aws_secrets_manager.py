@@ -91,7 +91,7 @@ def main():
     print("Clients initialized successfully")
 
     secrets = get_all_aws_secrets()
-    print(f"Retrieved {len(secrets)} secrets from AWS Secrets Manager: ", secrets)
+    print(f"Retrieved {len(secrets)} secrets from AWS Secrets Manager: {secrets}")
 
     for i, secret in enumerate(secrets, 1):
         secret_name = secret['Name']
