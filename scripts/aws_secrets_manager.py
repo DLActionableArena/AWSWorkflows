@@ -181,9 +181,10 @@ def main():
             # secret_value = get_secret_value(secret_name)
             secret_value = json.loads(get_secret_value(secret_name))
             if secret_value is not None:
-                key, value = secret_value.popitem()
-                print(f"Secret Value: key: {key} value: {value}")
-                get_secret_details(secret_name)
+                # key, value = secret_value.popitem()
+                for  key, value in secret_value.items():
+                    print(f"Secret Value: key: {key} value: {value}")
+                    get_secret_details(secret_name)
 
             rotation_details = get_secret_rotation_info(secret_name)
             if rotation_details:
