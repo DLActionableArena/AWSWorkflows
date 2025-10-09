@@ -97,13 +97,13 @@ def main():
         secret_name = secret['Name']
         print(f"\n[{i}] Secret Name: {secret_name}")
 
-        try:
+        try: 
             # secret_value = get_secret_value(secret_name)
             secret_value = json.loads( get_secret_value(secret_name))
-            key, value = secret_value.popitem()
-            print(f"Secret Value: {secret_value} key: {key} value: {value}")
-
-            get_secret_details(secret_name)
+            if secret_value:
+                key, value = secret_value.popitem()
+                print(f"Secret Value: {secret_value} key: {key} value: {value}")
+                get_secret_details(secret_name)
 
             rotation_details = get_secret_rotation_info(secret_name)
             if rotation_details:
