@@ -6,12 +6,14 @@ DEFAULT_AWS_REGION = 'us-east-2'
 AWS_SECRET_MANAGER='secretsmanager'
 AWS_SECURITY_TOKEN_SERVICE='sts'
 
-AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+# AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 # AWS_SECRET_ACCESS_KEY_ID = os.getenv("AWS_SECRET_ACCESS_KEY_ID")
+AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
+AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
+
 
 aws_client = None
 
@@ -29,25 +31,27 @@ def initialize_clients():
 #            verify=False  # Disable SSL verification (not recommended for production
 #        )
 
-        print('.1.')
-        sts_client = boto3.client('sts')
-        print('.2.')
-        assumed_role = sts_client.assume_role(
-            RoleArn=AWS_ROLE_TO_ASSUME,
-            RoleSessionName="AssumeRoleSession1"
-        )
-        print('.3.')
-        credentials = assumed_role['Credentials']
-        print('.4.')
-        session = boto3.Session(
-            aws_access_key_id=credentials['AccessKeyId'],
-            aws_secret_access_key=credentials['SecretAccessKey'],
-            aws_session_token=credentials['SessionToken'],
-            region_name=AWS_REGION
-        )
-        print('.5.')
-        aws_client = session.client('secretsmanager')
-        print('.6.')
+        aws_client = boto3.client('secretsmanager')
+
+        # print('.1.')
+        # sts_client = boto3.client('sts')
+        # print('.2.')
+        # assumed_role = sts_client.assume_role(
+        #     RoleArn=AWS_ROLE_TO_ASSUME,
+        #     RoleSessionName="AssumeRoleSession1"
+        # )
+        # print('.3.')
+        # credentials = assumed_role['Credentials']
+        # print('.4.')
+        # session = boto3.Session(
+        #     aws_access_key_id=credentials['AccessKeyId'],
+        #     aws_secret_access_key=credentials['SecretAccessKey'],
+        #     aws_session_token=credentials['SessionToken'],
+        #     region_name=AWS_REGION
+        # )
+        # print('.5.')
+        # aws_client = session.client('secretsmanager')
+        # print('.6.')
 
         # Suppress SSL warnings if needed
         import urllib3
