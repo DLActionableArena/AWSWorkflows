@@ -1,5 +1,6 @@
 import os
 import boto3
+import json
 
 DEFAULT_AWS_REGION = 'us-east-2'
 AWS_SECRET_MANAGER='secretsmanager'
@@ -97,8 +98,10 @@ def main():
         print(f"\n[{i}] Secret Name: {secret_name}")
 
         try:
-            secret_value = get_secret_value(secret_name)
-            print(f"Secret Value: {secret_value}")
+            # secret_value = get_secret_value(secret_name)
+            secret_value = json.loads( get_secret_value(secret_name))
+            key, value = secret_value.popitem()
+            print(f"Secret Value: {secret_value} key: {key} value: {value}")
 
             get_secret_details(secret_name)
 
