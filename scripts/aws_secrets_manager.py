@@ -63,7 +63,8 @@ aws_client = None
 def process_secret(secret_name):
     """Process secrets"""
     # Target Region ???
-    # SecretsManager.Client.create_secret(**kwargs)  # ForceOverwriteReplicaSecret ??? 
+    # SecretsManager.Client.create_secret(**kwargs)  # ForceOverwriteReplicaSecret ???
+    #   USE if have one or more replication regions
     #   Required permissions:
     #       secretsmanager:CreateSecret
     #       IF INCLUDE TAG: secretsmanager:TagResource
@@ -79,12 +80,14 @@ def process_secret(secret_name):
     #       secretsmanager:UpdateSecret
     #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
     # SecretsManager.Client.put_secret_value(**kwargs)
+    #   CANNOT USE if have one or more replication regions
     #   Use when your sole purpose is to provide a new secret value, creating a new version of the secret, 
     #       and you don't need to modify any other attributes.
     #   Purpose: This method is used to add a new version of a secret to an existing secret. 
     #            It updates the secret's value while retaining the history of previous versions.
     #   When to use: Use put_secret_value when you need to update the value of an already existing secret, 
     #                such as during a secret rotation or when a credential changes.
+    #
     #   Required permissions: secretsmanager:PutSecretValue
     # SecretsManager.Client.replicate_secret_to_regions(**kwargs) ???
     #   Required permissions:
@@ -118,10 +121,34 @@ def initialize_clients():
 
 def get_all_aws_secrets():
     """Retrieve all AWS secrets"""
-    secrets = []
+    secrets = {}
+    secrets_details = []
     paginator = aws_client.get_paginator('list_secrets')
     for page in paginator.paginate():
-        secrets.extend(page.get('SecretList', []))
+        secrets_details.extend(page.get('SecretList', []))
+
+    for secret in enumerate(secrets_details, 1):
+        secret_name = secret['Name']
+        secrets[secret_name] = json.loads(get_secret_value(secret_name))
+
+        # try:
+        #     # secret_value = get_secret_value(secret_name)
+        #     secret_value = json.loads(get_secret_value(secret_name))
+        #     if secret_value is not None:
+        #         # key, value = secret_value.popitem()
+        #         for  key, value in secret_value.items():
+        #             print(f"Secret Value: key: {key} value: {value}")
+        #             get_secret_details(secret_name)
+
+        #     rotation_details = get_secret_rotation_info(secret_name)
+        #     if rotation_details:
+        #         print(f"Rotation Details: {rotation_details}")
+        #     else:
+        #         print("No rotation details available")
+        # except Exception as e:
+        #     print(f"Error retrieving details for secret {secret_name}: {e}")
+        #     continue
+    print(f"Secrets Dictionary: {secrets}")
     return secrets
 
 def get_secret_value(secret_name):
@@ -173,27 +200,27 @@ def main():
     secrets = get_all_aws_secrets()
     print(f"Retrieved {len(secrets)} secrets from AWS Secrets Manager: {secrets}")
 
-    for i, secret in enumerate(secrets, 1):
-        secret_name = secret['Name']
-        print(f"\n[{i}] Secret Name: {secret_name}")
+    # for i, secret in enumerate(secrets, 1):
+    #     secret_name = secret['Name']
+    #     print(f"\n[{i}] Secret Name: {secret_name}")
 
-        try:
-            # secret_value = get_secret_value(secret_name)
-            secret_value = json.loads(get_secret_value(secret_name))
-            if secret_value is not None:
-                # key, value = secret_value.popitem()
-                for  key, value in secret_value.items():
-                    print(f"Secret Value: key: {key} value: {value}")
-                    get_secret_details(secret_name)
+    #     try:
+    #         # secret_value = get_secret_value(secret_name)
+    #         secret_value = json.loads(get_secret_value(secret_name))
+    #         if secret_value is not None:
+    #             # key, value = secret_value.popitem()
+    #             for  key, value in secret_value.items():
+    #                 print(f"Secret Value: key: {key} value: {value}")
+    #                 get_secret_details(secret_name)
 
-            rotation_details = get_secret_rotation_info(secret_name)
-            if rotation_details:
-                print(f"Rotation Details: {rotation_details}")
-            else:
-                print("No rotation details available")
-        except Exception as e:
-            print(f"Error retrieving details for secret {secret_name}: {e}")
-            continue
+    #         rotation_details = get_secret_rotation_info(secret_name)
+    #         if rotation_details:
+    #             print(f"Rotation Details: {rotation_details}")
+    #         else:
+    #             print("No rotation details available")
+    #     except Exception as e:
+    #         print(f"Error retrieving details for secret {secret_name}: {e}")
+    #         continue
 
 if __name__ == "__main__":
     main()
