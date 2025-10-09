@@ -127,25 +127,34 @@ def get_all_aws_secrets():
     for page in paginator.paginate():
         secrets_details.extend(page.get('SecretList', []))
 
-    for secret in enumerate(secrets_details, 1):
+    for i, secret in enumerate(secrets_details, 1):
         try:
             secret_name = secret['Name']
             secrets[secret_name] = json.loads(get_secret_value(secret_name))
 
-        # try:
-        #     # secret_value = get_secret_value(secret_name)
-        #     secret_value = json.loads(get_secret_value(secret_name))
-        #     if secret_value is not None:
-        #         # key, value = secret_value.popitem()
-        #         for  key, value in secret_value.items():
-        #             print(f"Secret Value: key: {key} value: {value}")
-        #             get_secret_details(secret_name)
+    # for i, secret in enumerate(secrets, 1):
+    #     secret_name = secret['Name']
+    #     print(f"\n[{i}] Secret Name: {secret_name}")
 
-        #     rotation_details = get_secret_rotation_info(secret_name)
-        #     if rotation_details:
-        #         print(f"Rotation Details: {rotation_details}")
-        #     else:
-        #         print("No rotation details available")
+    #     try:
+    #         # secret_value = get_secret_value(secret_name)
+    #         secret_value = json.loads(get_secret_value(secret_name))
+    #         if secret_value is not None:
+    #             # key, value = secret_value.popitem()
+    #             for  key, value in secret_value.items():
+    #                 print(f"Secret Value: key: {key} value: {value}")
+    #                 get_secret_details(secret_name)
+
+    #         rotation_details = get_secret_rotation_info(secret_name)
+    #         if rotation_details:
+    #             print(f"Rotation Details: {rotation_details}")
+    #         else:
+    #             print("No rotation details available")
+    #     except Exception as e:
+    #         print(f"Error retrieving details for secret {secret_name}: {e}")
+    #         continue
+
+       
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
