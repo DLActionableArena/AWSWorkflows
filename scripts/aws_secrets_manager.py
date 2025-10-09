@@ -127,9 +127,10 @@ def get_all_aws_secrets():
     for page in paginator.paginate():
         secrets_details.extend(page.get('SecretList', []))
 
-    for index, secret in enumerate(secrets_details, 1):
-        secret_name = secret[index]
-        secrets[secret_name] = json.loads(get_secret_value(secret_name))
+    for secret in enumerate(secrets_details, 1):
+        try:
+            secret_name = secret['Name']
+            secrets[secret_name] = json.loads(get_secret_value(secret_name))
 
         # try:
         #     # secret_value = get_secret_value(secret_name)
@@ -145,9 +146,10 @@ def get_all_aws_secrets():
         #         print(f"Rotation Details: {rotation_details}")
         #     else:
         #         print("No rotation details available")
-        # except Exception as e:
-        #     print(f"Error retrieving details for secret {secret_name}: {e}")
-        #     continue
+        except Exception as e:
+            print(f"Error retrieving details for secret {secret_name}: {e}")
+            continue
+        
     print(f"Secrets Dictionary: {secrets}")
     return secrets
 
