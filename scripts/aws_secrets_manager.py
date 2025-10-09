@@ -13,7 +13,87 @@ AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 
 
+# def create_multi_row_secret(secret_name, region_name, secret_data):
+#     """
+#     Creates a multi-row secret in AWS Secrets Manager.
+
+#     Args:
+#         secret_name (str): The name of the secret to create.
+#         region_name (str): The AWS region where the secret will be stored.
+#         secret_data (dict): A dictionary containing the key-value pairs for the secret.
+#     """
+#     client = boto3.client('secretsmanager', region_name=region_name)
+
+#     try:
+#         # Convert the dictionary to a JSON string
+#         secret_string = json.dumps(secret_data)
+
+#         response = client.create_secret(
+#             Name=secret_name,
+#             SecretString=secret_string
+#         )
+#         print(f"Secret '{secret_name}' created successfully.")
+#         return response
+#     except client.exceptions.ResourceExistsException:
+#         print(f"Secret '{secret_name}' already exists.")
+#     except Exception as e:
+#         print(f"Error creating secret: {e}")
+
+# # Example usage:
+# if __name__ == "__main__":
+#     my_secret_name = "MyMultiRowSecret"
+#     my_region = "us-east-1"  # Replace with your desired region
+
+#     # Define your secret data as a dictionary
+#     my_secret_data = {
+#         "username": "admin",
+#         "password": "supersecretpassword",
+#         "api_key": "your_api_key_here",
+#         "database_url": "jdbc:mysql://localhost:3306/mydb"
+#     }
+
+#     create_multi_row_secret(my_secret_name, my_region, my_secret_data)
+
+
+
+
 aws_client = None
+
+
+def process_secret(secret_name):
+    """Process secrets"""
+    # Target Region ???
+    # SecretsManager.Client.create_secret(**kwargs)  # ForceOverwriteReplicaSecret ??? 
+    #   Required permissions:
+    #       secretsmanager:CreateSecret
+    #       IF INCLUDE TAG: secretsmanager:TagResource
+    #       To AddReplicaRegions, you must also have secretsmanager:ReplicateSecretToRegions
+    #   Purpose: This method is used to create a brand new secret in AWS Secrets Manager. 
+    #            It establishes the secret's name, description, and initial secret value.
+    #   When to use: Use create_secret when you are storing a secret for the first time, 
+    #                and no secret with the specified name currently exists in Secrets Manager.
+    # SecretsManager.Client.update_secret(**kwargs)
+    #   Use when you need to modify the secret's metadata (description, KMS key, rotation configuration) 
+    #       and/or update the secret value.
+    #   Required permissions:
+    #       secretsmanager:UpdateSecret
+    #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
+    # SecretsManager.Client.put_secret_value(**kwargs)
+    #   Use when your sole purpose is to provide a new secret value, creating a new version of the secret, 
+    #       and you don't need to modify any other attributes.
+    #   Purpose: This method is used to add a new version of a secret to an existing secret. 
+    #            It updates the secret's value while retaining the history of previous versions.
+    #   When to use: Use put_secret_value when you need to update the value of an already existing secret, 
+    #                such as during a secret rotation or when a credential changes.
+    #   Required permissions: secretsmanager:PutSecretValue
+    # SecretsManager.Client.replicate_secret_to_regions(**kwargs) ???
+    #   Required permissions:
+    #       secretsmanager:ReplicateSecretToRegions
+    #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
+
+
+    # Reading multiple row secrets in Vault as JSON & processing them in AWS
+
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
