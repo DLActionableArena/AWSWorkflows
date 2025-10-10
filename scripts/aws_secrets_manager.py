@@ -138,6 +138,7 @@ def get_all_aws_secrets():
     """Retrieve all AWS secrets"""
     secrets = {}
     secrets_details = []
+    secrets_names = []
     paginator = aws_client.get_paginator('list_secrets')
     for page in paginator.paginate():
         secrets_details.extend(page.get('SecretList', []))
@@ -146,12 +147,13 @@ def get_all_aws_secrets():
     for secret in secrets_details:
         try:
             secret_name = secret['Name']
+            secrets_names.extend(secret_name)
             secrets[secret_name] = json.loads(get_secret_value(secret_name))
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
 
-    return secrets
+    return secrets_names, secrets
 
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
@@ -211,8 +213,8 @@ def main():
     initialize_clients()
     print("Clients initialized successfully")
 
-
-    aws_secrets = get_all_aws_secrets()
+    aws_secret_names, aws_secrets = get_all_aws_secrets()
+    print(f"AWS Secret Names: {aws_secret_names}")
     print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
     print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
     print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
