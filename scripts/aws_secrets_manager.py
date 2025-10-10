@@ -147,7 +147,7 @@ def get_all_aws_secrets():
     for secret in secrets_details:
         try:
             secret_name = secret['Name']
-            secrets_names.extend(secret_name)
+            secrets_names.append(secret_name)
             secrets[secret_name] = json.loads(get_secret_value(secret_name))
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
