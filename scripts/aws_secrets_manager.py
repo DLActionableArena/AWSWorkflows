@@ -200,7 +200,12 @@ def main():
 
     aws_secrets = get_all_aws_secrets()
     print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
-
+    for secret in aws_secrets:
+        print(f"Secret Name: {secret}, Secret Value: {aws_secrets[secret]}")
+        for  key, value in secret.items():
+            print(f"\nSecret Value: key: {key} value: {value}")
+    print(f"Secret: {secret["nprod/SyncAction"]} key: {secret["nprod/SyncAction"]["key"]} value: {secret["nprod/SyncAction"]["value"]}")
+        
 
     # process_secret(aws_secrets, secret_name)
     # for i, secret in enumerate(secrets, 1):
