@@ -55,6 +55,8 @@ AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 #     create_multi_row_secret(my_secret_name, my_region, my_secret_data)
 
 
+
+
 # def get_replicated_regions(secret_id):
 #     """
 #     Retrieves the regions a secret is replicated to.
@@ -221,9 +223,13 @@ def process_mock_vault_data(aws_secrets):
     mock_data = {
         'aws/secrets' : {'BogusKey':'BogusSecret', 'dumb-secret':'123'},
         'aws/services/app1' : {'secret1':'value1'},
-        'aws/services/app2' : {'secret2':'value2'}
+        'aws/services/app2' : {'secret2':'value2'},
+        'aws/services/app3/nprod/SyncAction' : {'BogusToken': '989e9ab0-de1e-4a12-9bad-a7b531cda777'},
+        'aws/services/app3/nprod/AnotherAppSecret' : {'Another secret': '86bbb505-4499-4de0-9bff-60635b5b250c', 'Next secret': '47aaa505-4499-4de0-9baa-60635b5b250c'},
+        'nprod/Service/MutliRowSecret' : {'key1': 'value1', 'key2': 'value2', 'key3': 'value3a'}
     }
-    print(f"Processing {len(mock_data)} mock data elements")
+
+    # Process all the returned result from vault, one row at a time
     for secret in mock_data.items():
         key = secret[0]
         value = secret[1]
@@ -231,11 +237,7 @@ def process_mock_vault_data(aws_secrets):
         for sub_value in value.items():
             secret_key = sub_value[0]
             secret_value = sub_value[1]
-
-            print(f"A sub sub value: {sub_value}")
-            #sub_key = value[0]
-            #sub_value = value[1]
-            #print(f"  Sub Key: {sub_key} Sub Value: {sub_value}")
+            print(f"Currently processing Vault data: path/key: {secret_key} Value: {sub_value}")
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
@@ -264,9 +266,9 @@ def main():
     print("Clients initialized successfully")
 
     aws_secrets = get_all_aws_secrets()
-    print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
     process_mock_vault_data(aws_secrets)
 
+#    print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
 #    print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
 #    print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
 #    print(f"Third secret: {aws_secrets["nprod/Service/MutliRowSecret"]}")
