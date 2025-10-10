@@ -221,8 +221,9 @@ def create_aws_secret(secret_name, secret_value):
 def process_secrets(aws_secrets, secrets_path, secret_data):
     """Process the """
     print(f"Now processing secrets_path: {secrets_path} with data: {secret_data} and aws data: {aws_secrets}")
-    sorted_secret_data = sorted(secret_data)
-    print(f"Sorted data: {sorted_secret_data}")
+    
+    sorted_json_string = json.dumps(secret_data, sort_keys=True)
+    print(f"Sorted data: {sorted_json_string}")
 
 
 
