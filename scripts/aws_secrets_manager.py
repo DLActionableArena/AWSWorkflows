@@ -55,6 +55,42 @@ AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 #     create_multi_row_secret(my_secret_name, my_region, my_secret_data)
 
 
+# def get_replicated_regions(secret_id):
+#     """
+#     Retrieves the regions a secret is replicated to.
+
+# Args:
+#         secret_id (str): The ARN or friendly name of the secret.
+
+# Returns:
+#         list: A list of region names where the secret is replicated,
+#               or an empty list if not replicated or an error occurs.
+#     """
+#     client = boto3.client("secretsmanager")
+#     try:
+#         response = client.describe_secret(SecretId=secret_id)
+#         replicated_regions = []
+#         if "ReplicationStatus" in response:
+#             for replica in response["ReplicationStatus"]:
+#                 if "Region" in replica:
+#                     replicated_regions.append(replica["Region"])
+#         return replicated_regions
+#     except client.exceptions.ResourceNotFoundException:
+#         print(f"Secret '{secret_id}' not found.")
+#         return []
+#     except Exception as e:
+#         print(f"An error occurred: {e}")
+#         return []
+
+# # Example usage:
+# secret_name = "my-replicated-secret"  # Replace with your secret's name or ARN
+# regions = get_replicated_regions(secret_name)
+
+# if regions:
+#     print(f"Secret '{secret_name}' is replicated to the following regions: {', '.join(regions)}")
+# else:
+#     print(f"Secret '{secret_name}' is not replicated to any regions or an error occurred.") 
+
 
 
 aws_client = None
