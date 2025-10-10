@@ -227,7 +227,7 @@ def process_mock_vault_data(aws_secrets):
     for secret in mock_data.items():
         key = secret[0]
         value = secret[1]
-        print(f"Processing current Key: {key}")
+        print(f"Processing current Key: {key} with value: {value}")
         for sub_value in value:
             print(f"A sub value: {sub_value}")
         for sub_value in value.items():
