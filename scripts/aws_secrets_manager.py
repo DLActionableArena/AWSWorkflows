@@ -264,16 +264,8 @@ def main():
     print("Clients initialized successfully")
 
     aws_secrets = get_all_aws_secrets()
-    process_mock_vault_data(aws_secrets)
-
-    secret_value = json.loads(aws_secrets)
-    if secret_value is not None:
-        # key, value = secret_value.popitem()
-        for  key, value in secret_value.items():
-            print(f"Secret Value: key: {key} value: {value}")
-
     print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
-    
+    process_mock_vault_data(aws_secrets)
 
 #    print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
 #    print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
