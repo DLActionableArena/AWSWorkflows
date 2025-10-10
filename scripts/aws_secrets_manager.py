@@ -225,6 +225,7 @@ def process_secrets(aws_secrets, secrets_path, secret_data):
     print(f"Sorted data: {sorted_secret_data}")
 
 
+
 # Simulate process_secrets in original code
 def process_mock_vault_data(aws_secrets):
     """Mock Vault data for testing"""
