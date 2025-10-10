@@ -266,7 +266,7 @@ def main():
     aws_secrets = get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
 
-    secret_value = json.loads(get_secret_value(aws_secrets))
+    secret_value = json.loads(aws_secrets)
     if secret_value is not None:
         # key, value = secret_value.popitem()
         for  key, value in secret_value.items():
