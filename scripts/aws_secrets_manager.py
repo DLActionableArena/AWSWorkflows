@@ -229,15 +229,18 @@ def process_mock_vault_data(aws_secrets):
         'nprod/Service/MutliRowSecret' : {'key1': 'value1', 'key2': 'value2', 'key3': 'value3a'}
     }
 
+    for secrets in mock_data:
+        print(f"Current secret from mock vault data: {secrets} with value: {mock_data[secrets]}")
+
     # Process all the returned result from vault, one row at a time
-    for secret in mock_data.items():
-        key = secret[0]
-        value = secret[1]
-        print(f"Processing current Key: {key} with value: {value}")
-        for sub_value in value.items():
-            secret_key = sub_value[0]
-            secret_value = sub_value[1]
-            print(f"Currently processing Vault data: path/key: {secret_key} Value: {sub_value}")
+#    for secret in mock_data.items():
+#        key = secret[0]
+#        value = secret[1]
+#        print(f"Processing current Key: {key} with value: {value}")
+#        for sub_value in value.items():
+#            secret_key = sub_value[0]
+#            secret_value = sub_value[1]
+#            print(f"Currently processing Vault data: path/key: {secret_key} Value: {sub_value}")
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
