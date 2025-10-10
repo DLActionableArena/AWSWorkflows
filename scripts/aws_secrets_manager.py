@@ -209,7 +209,7 @@ def get_secret_rotation_info(secret_name):
 
 
 
-
+#  secrets = key_name.split('/')[-1]
 
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
@@ -217,10 +217,16 @@ def update_aws_secret(secret_name, secret_value):
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
 
+# TODO - NOT EXACLT LIKE VAULT DUE TO MOCK
+def process_secrets(aws_secrets, secrets_path, data):
+    """Process the """ 
+
+
+# Simulate process_secrets in original code
 def process_mock_vault_data(aws_secrets):
     """Mock Vault data for testing"""
     # Secret name must contain only alphanumeric characters and the characters /_+=.@-
-    mock_data = {
+    mock_vault_data = {
         'aws/secrets' : {'BogusKey':'BogusSecret', 'dumb-secret':'123'},
         'aws/services/app1' : {'secret1':'value1'},
         'aws/services/app2' : {'secret2':'value2'},
@@ -229,18 +235,12 @@ def process_mock_vault_data(aws_secrets):
         'nprod/Service/MutliRowSecret' : {'key1': 'value1', 'key2': 'value2', 'key3': 'value3a'}
     }
 
-    for secrets in mock_data:
-        print(f"Current secret from mock vault data: {secrets} with value: {mock_data[secrets]}")
+    for item in mock_vault_data.items():
+        print(f"Mock Vault Data - Path: {item[0]} Data: {item[1]}")
+#    for secret_path in mock_vault_data:
+#        secret_data = mock_vault_data[secret_path]
+#        process_secrets(aws_secrets, secret_path, secret_data)
 
-    # Process all the returned result from vault, one row at a time
-#    for secret in mock_data.items():
-#        key = secret[0]
-#        value = secret[1]
-#        print(f"Processing current Key: {key} with value: {value}")
-#        for sub_value in value.items():
-#            secret_key = sub_value[0]
-#            secret_value = sub_value[1]
-#            print(f"Currently processing Vault data: path/key: {secret_key} Value: {sub_value}")
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
