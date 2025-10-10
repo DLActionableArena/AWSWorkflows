@@ -2,9 +2,9 @@ import os
 import boto3
 import json
 
-DEFAULT_AWS_REGION = 'us-east-2'
-AWS_SECRET_MANAGER='secretsmanager'
-AWS_SECURITY_TOKEN_SERVICE='sts'
+DEFAULT_AWS_REGION = "us-east-2"
+AWS_SECRET_MANAGER="secretsmanager"
+AWS_SECURITY_TOKEN_SERVICE="sts"
 
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 #AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -22,7 +22,7 @@ AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 #         region_name (str): The AWS region where the secret will be stored.
 #         secret_data (dict): A dictionary containing the key-value pairs for the secret.
 #     """
-#     client = boto3.client('secretsmanager', region_name=region_name)
+#     client = boto3.client("secretsmanager", region_name=region_name)
 
 #     try:
 #         # Convert the dictionary to a JSON string
@@ -32,10 +32,10 @@ AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 #             Name=secret_name,
 #             SecretString=secret_string
 #         )
-#         print(f"Secret '{secret_name}' created successfully.")
+#         print(f"Secret "{secret_name}" created successfully.")
 #         return response
 #     except client.exceptions.ResourceExistsException:
-#         print(f"Secret '{secret_name}' already exists.")
+#         print(f"Secret "{secret_name}" already exists.")
 #     except Exception as e:
 #         print(f"Error creating secret: {e}")
 
@@ -78,20 +78,20 @@ AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 #                     replicated_regions.append(replica["Region"])
 #         return replicated_regions
 #     except client.exceptions.ResourceNotFoundException:
-#         print(f"Secret '{secret_id}' not found.")
+#         print(f"Secret "{secret_id}" not found.")
 #         return []
 #     except Exception as e:
 #         print(f"An error occurred: {e}")
 #         return []
 
 # # Example usage:
-# secret_name = "my-replicated-secret"  # Replace with your secret's name or ARN
+# secret_name = "my-replicated-secret"  # Replace with your secret"s name or ARN
 # regions = get_replicated_regions(secret_name)
 
 # if regions:
-#     print(f"Secret '{secret_name}' is replicated to the following regions: {', '.join(regions)}")
+#     print(f"Secret "{secret_name}" is replicated to the following regions: {", ".join(regions)}")
 # else:
-#     print(f"Secret '{secret_name}' is not replicated to any regions or an error occurred.") 
+#     print(f"Secret "{secret_name}" is not replicated to any regions or an error occurred.") 
 
 
 
@@ -105,11 +105,11 @@ aws_client = None
 #       IF INCLUDE TAG: secretsmanager:TagResource
 #       To AddReplicaRegions, you must also have secretsmanager:ReplicateSecretToRegions
 #   Purpose: This method is used to create a brand new secret in AWS Secrets Manager. 
-#            It establishes the secret's name, description, and initial secret value.
+#            It establishes the secret"s name, description, and initial secret value.
 #   When to use: Use create_secret when you are storing a secret for the first time, 
 #                and no secret with the specified name currently exists in Secrets Manager.
 # SecretsManager.Client.update_secret(**kwargs)
-#   Use when you need to modify the secret's metadata (description, KMS key, rotation configuration) 
+#   Use when you need to modify the secret"s metadata (description, KMS key, rotation configuration) 
 #       and/or update the secret value.
 #   Required permissions:
 #       secretsmanager:UpdateSecret
@@ -117,9 +117,9 @@ aws_client = None
 # SecretsManager.Client.put_secret_value(**kwargs)
 #   CANNOT USE if have one or more replication regions
 #   Use when your sole purpose is to provide a new secret value, creating a new version of the secret, 
-#       and you don't need to modify any other attributes.
+#       and you don"t need to modify any other attributes.
 #   Purpose: This method is used to add a new version of a secret to an existing secret. 
-#            It updates the secret's value while retaining the history of previous versions.
+#            It updates the secret"s value while retaining the history of previous versions.
 #   When to use: Use put_secret_value when you need to update the value of an already existing secret, 
 #                such as during a secret rotation or when a credential changes.
 #
@@ -131,36 +131,36 @@ aws_client = None
 
 
 # Secrets Dictionary: {
-#     'nprod/SyncAction': {
-#         'BogusToken': '989e9ab0-de1e-4a12-9bad-a7b531cda777'
+#     "nprod/SyncAction": {
+#         "BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"
 #     },
-#     'nprod/AnotherAppSecret': {
-#         'Another secret': '86bbb505-4499-4de0-9bff-60635b5b250c'
+#     "nprod/AnotherAppSecret": {
+#         "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"
 #     },
-#     'nprod/Service/MutliRowSecret': {
-#         'key1': 'value1',
-#         'key2': 'value2',
-#         'key3': 'value3'
+#     "nprod/Service/MutliRowSecret": {
+#         "key1": "value1",
+#         "key2": "value2",
+#         "key3": "value3"
 #     }
 # }
 
 def process_secret(aws_secrets, secret_name):
     """Process secrets"""
-    
-    
+
+
 
 def get_all_aws_secrets():
     """Retrieve all AWS secrets"""
     secrets = {}
     secrets_details = []
-    paginator = aws_client.get_paginator('list_secrets')
+    paginator = aws_client.get_paginator("list_secrets")
     for page in paginator.paginate():
-        secrets_details.extend(page.get('SecretList', []))
+        secrets_details.extend(page.get("SecretList", []))
     print(f"Total secrets found: {len(secrets_details)} with keys: {secrets_details}")
 
     for secret in secrets_details:
         try:
-            secret_name = secret['Name']
+            secret_name = secret["Name"]
             secrets[secret_name] = json.loads(get_secret_value(secret_name))
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
@@ -171,7 +171,7 @@ def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
     try:
         response = aws_client.get_secret_value(SecretId=secret_name)
-        return response.get('SecretString', None)
+        return response.get("SecretString", None)
     except Exception as e:
         print(f"Error retrieving secret {secret_name}: {e}")
         return None
@@ -193,7 +193,7 @@ def get_secret_rotation_info(secret_name):
     Args:
         secret_name (str): The name or ARN of the secret.
     Returns:
-        dict: A dictionary containing the secret's rotation configuration,
+        dict: A dictionary containing the secret"s rotation configuration,
               or None if no rotation is configured or an error occurs.
     """
     try:
@@ -204,12 +204,12 @@ def get_secret_rotation_info(secret_name):
             return rotation_rules
 
     except aws_client.exceptions.ResourceNotFoundException:
-        print(f"Secret '{secret_name}' not found.")
+        print(f"Secret {secret_name} not found.")
         return None
 
 
 
-#  secrets = key_name.split('/')[-1]
+#  secrets = key_name.split("/")[-1]
 
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
@@ -221,7 +221,7 @@ def create_aws_secret(secret_name, secret_value):
 def process_secrets(aws_secrets, secrets_path, secret_data):
     """Process the """
     #print(f"Now processing secrets_path: {secrets_path} with data: {secret_data} and aws data: {aws_secrets}")
-    
+
     sorted_json_string = json.dumps(secret_data, sort_keys=True)
 #    print(f"NOT sorted secret_data: {secret_data}")
     print(f"Sorted secret_data: {sorted_json_string}")
@@ -243,7 +243,7 @@ def process_mock_vault_data(aws_secrets):
         "aws/services/app2" : {"secret2":"value2"},
         "aws/services/app3/nprod/SyncAction" : {"BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"},
         "aws/services/app3/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b250c", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
-        "nprod/Service/MutliRowSecret'" : {"key2": "value2", "key1": "value1", "key3": "value3a"}
+        "nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3a"}
     }
 
     for secret in mock_vault_data.items():
@@ -257,10 +257,10 @@ def initialize_clients():
 
     try:
         # Initialize AWS client using emvironment variable
-        aws_client = boto3.client('secretsmanager')
+        aws_client = boto3.client("secretsmanager")
 
         # Use sts to validate we are really authenticated else witl throw
-        sts_client = boto3.client('sts')
+        sts_client = boto3.client("sts")
         sts_client.get_caller_identity()
 
         # Suppress SSL warnings if needed
@@ -287,13 +287,13 @@ def main():
 
 # Secret name must contain only alphanumeric characters and the characters /_+=.@-
 # nprod/Service/MutliRowSecret - Secret Value: {}
-# nprod/AnotherAppSecret - Secret Value: {'Another secret' : '86bbb505-4499-4de0-9bff-60635b5b250c'}
-# nprod/SyncAction - Secret Value: {'BogusToken':'989e9ab0-de1e-4a12-9bad-a7b531cda777'}
+# nprod/AnotherAppSecret - Secret Value: {"Another secret" : "86bbb505-4499-4de0-9bff-60635b5b250c"}
+# nprod/SyncAction - Secret Value: {"BogusToken":"989e9ab0-de1e-4a12-9bad-a7b531cda777"}
 
 
     # process_secret(aws_secrets, secret_name)
     # for i, secret in enumerate(secrets, 1):
-    #     secret_name = secret['Name']
+    #     secret_name = secret["Name"]
     #     print(f"\n[{i}] Secret Name: {secret_name}")
 
     #     try:
