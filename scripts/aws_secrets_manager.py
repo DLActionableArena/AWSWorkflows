@@ -195,18 +195,26 @@ def get_secret_rotation_info(secret_name):
         print(f"Secret '{secret_name}' not found.")
         return None
 
+
+
+
+
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
 
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
 
-def get_mock_vault_data():
+def process_mock_vault_data(aws_secret_names, aws_secrets):
     """Mock Vault data for testing"""
-    return {
+    # Secret name must contain only alphanumeric characters and the characters /_+=.@-
+    mock_data = {
         'aws/secrets' : {'BogusKey':'BogusSecret', 'dumb-secret':'123'},
-        'aws/services/app1' : {'secret1':'value1'}
+        'aws/services/app1' : {'secret1':'value1'},
+        'aws/services/app2' : {'secret2':'value2'}
     }
+    for secret in mock_data:
+        print(f"Mock Vault Secret: {secret} - Secret Value: {mock_data[secret]}")
 
 def main():
     """"Main function to demonstrate functionality"""
@@ -214,6 +222,8 @@ def main():
     print("Clients initialized successfully")
 
     aws_secret_names, aws_secrets = get_all_aws_secrets()
+    process_mock_vault_data(aws_secret_names, aws_secrets)
+
     print(f"AWS Secret Names: {aws_secret_names}")
     print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
     print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
