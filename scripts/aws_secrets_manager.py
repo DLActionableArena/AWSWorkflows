@@ -242,7 +242,6 @@ def process_mock_vault_data(aws_secrets):
     for secret in mock_vault_data.items():
         secret_path = secret[0]
         secret_data = secret[1]
-        print(f"Mock Vault Data - Path: {secret_path} Data: {secret_data}")
         process_secrets(aws_secrets, secret_path, secret_data)
 
 def initialize_clients():
