@@ -111,34 +111,10 @@ def process_secret(aws_secrets, secret_name):
     
     
 
-
-
-def initialize_clients():
-    """Initialize HashiCorp Vault and AWS Clients"""
-    global aws_client
-
-    try:
-        # Initialize AWS client using emvironment variable
-        aws_client = boto3.client('secretsmanager')
-
-        # Use sts to validate we are really authenticated else witl throw
-        sts_client = boto3.client('sts')
-        sts_client.get_caller_identity()
-
-        # Suppress SSL warnings if needed
-        import urllib3
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-        return True
-    except Exception as e:
-        print(f"Error initializing AWS client: {e}")
-        return False
-
 def get_all_aws_secrets():
     """Retrieve all AWS secrets"""
     secrets = {}
     secrets_details = []
-    secrets_names = []
     paginator = aws_client.get_paginator('list_secrets')
     for page in paginator.paginate():
         secrets_details.extend(page.get('SecretList', []))
@@ -147,13 +123,11 @@ def get_all_aws_secrets():
     for secret in secrets_details:
         try:
             secret_name = secret['Name']
-            secrets_names.append(secret_name)
             secrets[secret_name] = json.loads(get_secret_value(secret_name))
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
-
-    return secrets_names, secrets
+    return secrets
 
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
@@ -205,7 +179,7 @@ def update_aws_secret(secret_name, secret_value):
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
 
-def process_mock_vault_data(aws_secret_names, aws_secrets):
+def process_mock_vault_data(aws_secrets):
     """Mock Vault data for testing"""
     # Secret name must contain only alphanumeric characters and the characters /_+=.@-
     mock_data = {
@@ -213,18 +187,41 @@ def process_mock_vault_data(aws_secret_names, aws_secrets):
         'aws/services/app1' : {'secret1':'value1'},
         'aws/services/app2' : {'secret2':'value2'}
     }
-    for secret in mock_data:
-        print(f"Mock Vault Secret: {secret} - Secret Value: {mock_data[secret]}")
+    print(f"Processing {len(mock_data)} mock data elements")
+    for secret in mock_data.items():
+        key = secret[0]
+        value = secret[1]
+        print(f"Key: {key} Value: {value}")
+
+def initialize_clients():
+    """Initialize HashiCorp Vault and AWS Clients"""
+    global aws_client
+
+    try:
+        # Initialize AWS client using emvironment variable
+        aws_client = boto3.client('secretsmanager')
+
+        # Use sts to validate we are really authenticated else witl throw
+        sts_client = boto3.client('sts')
+        sts_client.get_caller_identity()
+
+        # Suppress SSL warnings if needed
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        return True
+    except Exception as e:
+        print(f"Error initializing AWS client: {e}")
+        return False
 
 def main():
     """"Main function to demonstrate functionality"""
     initialize_clients()
     print("Clients initialized successfully")
 
-    aws_secret_names, aws_secrets = get_all_aws_secrets()
-    process_mock_vault_data(aws_secret_names, aws_secrets)
+    aws_secrets = get_all_aws_secrets()
+    process_mock_vault_data(aws_secrets)
 
-    print(f"AWS Secret Names: {aws_secret_names}")
     print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
     print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
     print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
