@@ -228,10 +228,13 @@ def process_mock_vault_data(aws_secrets):
         key = secret[0]
         value = secret[1]
         print(f"Processing current Key: {key}")
+        for sub_value in value:
+            print(f"A sub value: {sub_value}")
         for sub_value in value.items():
-            sub_key = value[0]
-            sub_value = value[1]
-            print(f"  Sub Key: {sub_key} Sub Value: {sub_value}")
+            print(f"A sub sub value: {sub_value}")
+            #sub_key = value[0]
+            #sub_value = value[1]
+            #print(f"  Sub Key: {sub_key} Sub Value: {sub_value}")
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
