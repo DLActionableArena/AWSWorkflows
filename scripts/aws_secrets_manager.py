@@ -218,8 +218,11 @@ def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
 
 # TODO - NOT EXACLT LIKE VAULT DUE TO MOCK
-def process_secrets(aws_secrets, secrets_path, data):
-    """Process the """ 
+def process_secrets(aws_secrets, secrets_path, secret_data):
+    """Process the """
+    print(f"Now processing secrets_path: {secrets_path} with data: {secret_data} and aws data: {aws_secrets}")
+    sorted_secret_data = sorted(secret_data)
+    print(f"Sorted data: {sorted_secret_data}")
 
 
 # Simulate process_secrets in original code
@@ -231,16 +234,15 @@ def process_mock_vault_data(aws_secrets):
         'aws/services/app1' : {'secret1':'value1'},
         'aws/services/app2' : {'secret2':'value2'},
         'aws/services/app3/nprod/SyncAction' : {'BogusToken': '989e9ab0-de1e-4a12-9bad-a7b531cda777'},
-        'aws/services/app3/nprod/AnotherAppSecret' : {'Another secret': '86bbb505-4499-4de0-9bff-60635b5b250c', 'Next secret': '47aaa505-4499-4de0-9baa-60635b5b250c'},
-        'nprod/Service/MutliRowSecret' : {'key1': 'value1', 'key2': 'value2', 'key3': 'value3a'}
+        'aws/services/app3/nprod/AnotherAppSecret' : {'Secret': '47aaa505-4499-4de0-9baa-60635b5b250c', 'Another secret': '86bbb505-4499-4de0-9bff-60635b5b250c'},
+        'nprod/Service/MutliRowSecret' : {'key2': 'value2', 'key1': 'value1', 'key3': 'value3a'}
     }
 
-    for item in mock_vault_data.items():
+    for secret in mock_vault_data.items():
+        secret_path = item[0]
+        secret_data = item[1]
         print(f"Mock Vault Data - Path: {item[0]} Data: {item[1]}")
-#    for secret_path in mock_vault_data:
-#        secret_data = mock_vault_data[secret_path]
-#        process_secrets(aws_secrets, secret_path, secret_data)
-
+        process_secrets(aws_secrets, secret_path, secret_data)
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
