@@ -223,11 +223,13 @@ def process_secrets(aws_secrets, secrets_path, secret_data):
     #print(f"Now processing secrets_path: {secrets_path} with data: {secret_data} and aws data: {aws_secrets}")
     
     sorted_json_string = json.dumps(secret_data, sort_keys=True)
+    print(f"The type of sorted_json_string is: {type(sorted_json_string)}")
     print(f"NOT sorted secret_data: {secret_data}")
     print(f"Sorted secret_data: {sorted_json_string}")
     print(f"secret_data are equal: {secret_data == sorted_json_string}")
 
     sorted_aws_secrets = json.dumps(aws_secrets, sort_keys=True)
+    print(f"The type of sorted_json_string is: {type(sorted_aws_secrets)}")
     print(f"NOT sorted sorted_aws_secrets: {aws_secrets}")
     print(f"Sorted sorted_aws_secrets: {sorted_aws_secrets}")
     print(f"sorted_aws_secrets are equal: {aws_secrets == sorted_aws_secrets}")
