@@ -243,7 +243,7 @@ def process_mock_vault_data(aws_secrets):
         "aws/services/app2" : {"secret2":"value2"},
         "aws/services/app3/nprod/SyncAction" : {"BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"},
         "aws/services/app3/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b250c", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
-        "nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3a"}
+        "nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
     }
 
     for secret in mock_vault_data.items():
