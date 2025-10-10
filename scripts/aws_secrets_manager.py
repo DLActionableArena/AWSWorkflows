@@ -141,6 +141,7 @@ def get_all_aws_secrets():
     paginator = aws_client.get_paginator('list_secrets')
     for page in paginator.paginate():
         secrets_details.extend(page.get('SecretList', []))
+    print(f"Total secrets found: {len(secrets_details)} with keys: {secrets_details}")
 
     for secret in secrets_details:
         try:
@@ -149,6 +150,7 @@ def get_all_aws_secrets():
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
+
     return secrets
 
 def get_secret_value(secret_name):
@@ -191,6 +193,18 @@ def get_secret_rotation_info(secret_name):
         print(f"Secret '{secret_name}' not found.")
         return None
 
+def update_aws_secret(secret_name, secret_value):
+    """Update an AWS secret"""
+
+def create_aws_secret(secret_name, secret_value):
+    """Create an AWS secret"""
+
+def get_mock_vault_data():
+    """Mock Vault data for testing"""
+    return {
+        'aws/secrets' : {'BogusKey':'BogusSecret', 'dumb-secret':'123'},
+        'aws/services/app1' : {'secret1':'value1'}
+    }
 
 def main():
     """"Main function to demonstrate functionality"""
@@ -204,6 +218,10 @@ def main():
     print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
     print(f"Third secret: {aws_secrets["nprod/Service/MutliRowSecret"]}")
 
+# Secret name must contain only alphanumeric characters and the characters /_+=.@-
+# nprod/Service/MutliRowSecret - Secret Value: {}
+# nprod/AnotherAppSecret - Secret Value: {'Another secret' : '86bbb505-4499-4de0-9bff-60635b5b250c'}
+# nprod/SyncAction - Secret Value: {'BogusToken':'989e9ab0-de1e-4a12-9bad-a7b531cda777'}
 
 
     # process_secret(aws_secrets, secret_name)
