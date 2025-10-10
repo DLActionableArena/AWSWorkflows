@@ -228,9 +228,10 @@ def process_mock_vault_data(aws_secrets):
         key = secret[0]
         value = secret[1]
         print(f"Processing current Key: {key} with value: {value}")
-        for sub_value in value:
-            print(f"A sub value: {sub_value}")
         for sub_value in value.items():
+            secret_key = sub_value[0]
+            secret_value = sub_value[1]
+
             print(f"A sub sub value: {sub_value}")
             #sub_key = value[0]
             #sub_value = value[1]
@@ -265,10 +266,18 @@ def main():
     aws_secrets = get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
 
+    secret_value = json.loads(get_secret_value(aws_secrets))
+    if secret_value is not None:
+        # key, value = secret_value.popitem()
+        for  key, value in secret_value.items():
+            print(f"Secret Value: key: {key} value: {value}")
+
     print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
-    print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
-    print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
-    print(f"Third secret: {aws_secrets["nprod/Service/MutliRowSecret"]}")
+    
+
+#    print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
+#    print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
+#    print(f"Third secret: {aws_secrets["nprod/Service/MutliRowSecret"]}")
 
 # Secret name must contain only alphanumeric characters and the characters /_+=.@-
 # nprod/Service/MutliRowSecret - Secret Value: {}
