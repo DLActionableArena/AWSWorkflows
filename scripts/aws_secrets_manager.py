@@ -134,8 +134,9 @@ def process_secrets(aws_secrets, secrets_path, secret_data):
     print(f"Sorted vault data: {sorted_json_string} type: {type(sorted_json_string)}")
     print(f"Sorted aws data: {sorted_aws_secrets} type: {type(sorted_aws_secrets)}")
 
-    for secret in aws_secrets:
-        secret_name = secret["Name"]
+    for secret in aws_secrets.items():
+        secret_name = secret[0]
+        secret_value = secret[1]
         print(f"AWS Secret Name: {secret_name}")
 
     try:
