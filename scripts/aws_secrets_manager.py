@@ -131,14 +131,21 @@ def process_secrets(aws_secrets, secrets_path, secret_data):
     # to determine if the the data has changed or not
     sorted_json_string = json.dumps(secret_data, sort_keys=True)
     sorted_aws_secrets = json.dumps(aws_secrets, sort_keys=True)
-    print(f"Sorted vault data: {sorted_json_string}")
-    print(f"Sorted aws data: {sorted_aws_secrets}")
+    print(f"Sorted vault data: {sorted_json_string} type: {type(sorted_json_string)}")
+    print(f"Sorted aws data: {sorted_aws_secrets} type: {type(sorted_aws_secrets)}")
 
     try:
         test_with_string   = json.dumps("BogusData", sort_keys=True)
-        print("Test with string: {test_with_string}")
+        print(f"Test with string: {test_with_string}")
     except Exception as e:
         print(f"Error creating secret: {e}")
+
+    try:
+        test_with_string   = json.load("BogusData")
+        print(f"Apparently treated as json")
+    except Exception as e:
+        print(f"Error trying to load from JSON : {e}")
+
 
     # TODO
     # Compare the vault path to the AWS secret name and look for either
