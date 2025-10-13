@@ -137,7 +137,7 @@ def process_secrets(aws_secrets, secrets_path, secret_data):
     for secret in aws_secrets.items():
         secret_name = secret[0]
         secret_value = secret[1]
-        print(f"AWS Secret Name: {secret_name}")
+        print(f"AWS Secret Name: {secret_name} Secret Value: {secret_value}")
 
     try:
         test_with_string   = json.dumps("BogusData", sort_keys=True)
