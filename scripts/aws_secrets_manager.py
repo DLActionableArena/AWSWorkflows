@@ -143,28 +143,29 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     """Process the specified secrets path and data"""
     # Convert the secret value to JSON string for change validation
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
-    vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
+    if AWS_FILTER_SECRET_NAME is None or vault_secret_name_match == AWS_FILTER_SECRET_NAME:
+        vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
 
-    # Iterate through AWS Secrets to locate any match and update if found
-    for aws_secret in aws_secrets.items():
-        aws_secret_name  = aws_secret[0]
-        aws_secret_value = aws_secret[1]
+        # Iterate through AWS Secrets to locate any match and update if found
+        for aws_secret in aws_secrets.items():
+            aws_secret_name  = aws_secret[0]
+            aws_secret_value = aws_secret[1]
 
-        # Validate that the AWS secret name matches the vault secret name
-        if aws_secret_name == vault_secret_name_match:
-            aws_secret_value_str = json.dumps(aws_secret_value, sort_keys=True)
-            if vault_secret_value_str != aws_secret_value_str:
-                print(f"Value change detected for AWS secret with name {aws_secret_name}, updating")
-                update_aws_secret(vault_secret_name_match, vault_secret_value_str)
-                process_secret_regions(vault_secret_name_match)
-            else:
-                print(f"Secret with name {aws_secret_name} did not change, AWS version remains unchanged")
+            # Validate that the AWS secret name matches the vault secret name
+            if aws_secret_name == vault_secret_name_match:
+                aws_secret_value_str = json.dumps(aws_secret_value, sort_keys=True)
+                if vault_secret_value_str != aws_secret_value_str:
+                    print(f"Value change detected for AWS secret with name {aws_secret_name}, updating")
+                    update_aws_secret(vault_secret_name_match, vault_secret_value_str)
+                    process_secret_regions(vault_secret_name_match)
+                else:
+                    print(f"Secret with name {aws_secret_name} did not change, AWS version remains unchanged")
 
-            return
+                return
 
-    # Create a new AWS secret
-    create_aws_secret(vault_secret_name_match, vault_secret_value_str)
-    process_secret_regions(vault_secret_name_match)
+        # Create a new AWS secret
+        create_aws_secret(vault_secret_name_match, vault_secret_value_str)
+        process_secret_regions(vault_secret_name_match)
 
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
