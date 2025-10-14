@@ -151,7 +151,7 @@ def extract_secret_name(vault_secret_name):
     secret_name = vault_secret_name
     if  len(vault_secret_name) > VAULT_AWS_SECRET_PATH_LEN and \
         vault_secret_name.startswith(VAULT_AWS_SECRET_PATH):
-        secret_name = vault_secret_name[VAULT_AWS_SECRET_PATH_LEN]
+        secret_name = vault_secret_name[VAULT_AWS_SECRET_PATH_LEN:]
 
     return secret_name
 
