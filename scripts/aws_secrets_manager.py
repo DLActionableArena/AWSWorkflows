@@ -85,9 +85,7 @@ def replicate_secret_change_to_regions(secret_name, secret_value):
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
     # Required permissions:
-    #   secretsmanager:CreateSecret
-    #   secretsmanager:TagResource (optional - If secret includes tags)
-    #   secretsmanager:ReplicateSecretToRegions (optional - If secret includes replica regions)
+    #   secretsmanager:UpdateSecret
 
     # SecretsManager.Client.update_secret(**kwargs)
     #   Use when you need to modify the secret"s metadata (description, KMS key, rotation configuration)
@@ -111,7 +109,7 @@ def update_aws_secret(secret_name, secret_value):
     try:
         print(f"Updating AWS secret: {secret_name} with value: {secret_value}")
         response = aws_client.update_secret(
-            Name=secret_name,
+            SecretId=secret_name,
             SecretString=secret_value
             #, AddReplicaRegions=[
             #{
@@ -121,11 +119,13 @@ def update_aws_secret(secret_name, secret_value):
             #],
         )
         print(f"Secret {secret_name} successfully updated.")
+        return response
         # TODO - Process the response  ???
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
         print(f"Error updating secret {secret_name} : {e}")
+    return None
 
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
@@ -138,7 +138,7 @@ def create_aws_secret(secret_name, secret_value):
         response = aws_client.create_secret(
             Name=secret_name,
             SecretString=secret_value
-            #, AddReplicaRegions=[ 
+            #, AddReplicaRegions=[
             #{
             #    'Region': 'us-east-1'
             #    # , 'KmsKeyId': 'string'  # ARN for Custom KMS encryption key
@@ -146,11 +146,14 @@ def create_aws_secret(secret_name, secret_value):
             #],
         )
         print(f"Secret {secret_name} successfully created.")
+        return response
         # TODO - Process the response  ???
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
         print(f"Error creating secret {secret_name} : {e}")
+
+    return None
 
 def extract_secret_name(vault_secret_name):
     """Returns the secret name from the provided path"""
