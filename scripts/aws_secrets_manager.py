@@ -145,7 +145,7 @@ def get_replicated_regions(secret_id):
 def extract_secret_name(vault_secret_name):
     """Returns the secret name from the provided path"""
     secret_name = vault_secret_name
-    if  len(vault_secret_name) > len(VAULT_AWS_SECRET_PATH_LEN) and \
+    if  len(vault_secret_name) > VAULT_AWS_SECRET_PATH_LEN and \
         vault_secret_name.startswith(VAULT_AWS_SECRET_PATH):
         secret_name = vault_secret_name[VAULT_AWS_SECRET_PATH_LEN]
 
