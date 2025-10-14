@@ -109,7 +109,7 @@ def update_aws_secret(secret_name, secret_value):
 
 #    print(f"Would update AWS secret with name: {secret_name} with value {secret_value}")
     try:
-        print(f"Updating AWS secret: {secret_name}")
+        print(f"Updating AWS secret: {secret_name} with value: {secret_value}")
         response = aws_client.update_secret(
             Name=secret_name,
             SecretString=secret_value
@@ -125,7 +125,7 @@ def update_aws_secret(secret_name, secret_value):
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
-        print(f"Error creating secret {secret_name} : {e}")
+        print(f"Error updating secret {secret_name} : {e}")
 
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
