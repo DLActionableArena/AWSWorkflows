@@ -80,7 +80,7 @@ def update_aws_secret(aws_secret_name, aws_secret_value):
 
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
-    print(f"Would create AWS secret with name: {aws_secret_name} with value {aws_secret_value}")
+    print(f"Would create AWS secret with name: {secret_name} with value {secret_value}")
 
     # SecretsManager.Client.create_secret(**kwargs)  # ForceOverwriteReplicaSecret ???
     #   USE if have one or more replication regions
