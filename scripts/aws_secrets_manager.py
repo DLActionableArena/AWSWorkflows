@@ -287,8 +287,8 @@ def main():
     initialize_clients()
     print("Clients initialized successfully")
 
-    if AWS_FILTER_SECRET_NAME is not None and len(AWS_FILTER_SECRET_NAME) > 0:
-        print(f"Apparently filtered secret name: {AWS_FILTER_SECRET_NAME} len: {len(AWS_FILTER_SECRET_NAME)}")
+    if AWS_FILTER_SECRET_NAME is not None:
+        print(f"Apparently filtered secret name: {AWS_FILTER_SECRET_NAME}")
     else:
         print(f"Apparently NOT filtered secret name : {AWS_FILTER_SECRET_NAME}")
 
