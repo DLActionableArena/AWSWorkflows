@@ -86,37 +86,10 @@ def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
     # Required permissions:
     #   secretsmanager:UpdateSecret
-
-    # SecretsManager.Client.update_secret(**kwargs)
-    #   Use when you need to modify the secret"s metadata (description, KMS key, rotation configuration)
-    #       and/or update the secret value.
-    #   Required permissions:
-    #       secretsmanager:UpdateSecret
-    #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
-
-    # SecretsManager.Client.put_secret_value(**kwargs)
-    #   CANNOT USE if have one or more replication regions
-    #   Use when your sole purpose is to provide a new secret value, creating a new version of the secret,
-    #       and you don"t need to modify any other attributes.
-    #   Purpose: This method is used to add a new version of a secret to an existing secret.
-    #            It updates the secret"s value while retaining the history of previous versions.
-    #   When to use: Use put_secret_value when you need to update the value of an already existing secret,
-    #                such as during a secret rotation or when a credential changes.
-    #   Required permissions: secretsmanager:PutSecretValue
-
-
-#    print(f"Would update AWS secret with name: {secret_name} with value {secret_value}")
     try:
-        print(f"Updating AWS secret: {secret_name} with value: {secret_value}")
         response = aws_client.update_secret(
             SecretId=secret_name,
             SecretString=secret_value
-            #, AddReplicaRegions=[
-            #{
-            #    'Region': 'us-east-1'
-            #    # , 'KmsKeyId': 'string'  # ARN for Custom KMS encryption key
-            #},
-            #],
         )
         print(f"Secret {secret_name} successfully updated.")
         return response
@@ -179,8 +152,6 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
 
         # Validate that the AWS secret name matches the vault secret name
         if aws_secret_name == vault_secret_name_match:
-            # TODO - Remove this
-            print(f"AWS secret_name {aws_secret_name} is identical to Vault secret name: {vault_secret_name_match} ")
             aws_secret_value_str = json.dumps(aws_secret_value, sort_keys=True)
             if vault_secret_value_str != aws_secret_value_str:
                 print(f"Value change detected for AWS secret with name {aws_secret_name}, updating")
@@ -257,11 +228,11 @@ def process_mock_vault_data(aws_secrets):
     """Mock Vault data for testing"""
     # Secret name must contain only alphanumeric characters and the characters /_+=.@-
     mock_vault_data = {
-        "aws/services/app/Secrets" : {"BogusKey":"BogusSecret", "dumb-secret":"123"},
+        "aws/services/app/Secrets" : {"BogusKey":"BogusSecret", "dumb-secret":"456"},
         "aws/services/app1/Secrets" : {"secret1":"value1"},
-        "aws/services/app2/Secrets" : {"secret2":"value2"},
+        "aws/services/app2/Secrets" : {"secret2":"value2a"},
         "aws/services/nprod/SyncAction" : {"BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"},
-        "aws/services/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b250c", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
+        "aws/services/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b2556", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
         "aws/services/nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
     }
 
