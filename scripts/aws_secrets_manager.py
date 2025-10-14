@@ -146,8 +146,6 @@ def get_replicated_regions(secret_id):
 
 def extract_secret_name(vault_secret_name):
     """Returns the secret name from the provided path"""
-    print(f"Extracting secret name: {vault_secret_name} Len vault secret: {len(vault_secret_name)} against {VAULT_AWS_SECRET_PATH_LEN} ")
-    print(f"Is substring: {vault_secret_name.startswith(VAULT_AWS_SECRET_PATH)}")
     secret_name = vault_secret_name
     if  len(vault_secret_name) > VAULT_AWS_SECRET_PATH_LEN and \
         vault_secret_name.startswith(VAULT_AWS_SECRET_PATH):
@@ -161,16 +159,14 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
 
-    # TODO - Remove this
-    print(f"VAULT_AWS_SECRET_PATH is {VAULT_AWS_SECRET_PATH} with VAULT_AWS_SECRET_PATH_LEN {VAULT_AWS_SECRET_PATH_LEN}")
-    print(f"JSON string version of vault value: {vault_secret_value_str}")
-    print(f"The Vault secret name to match: {vault_secret_name_match}")
-
-
     # Iterate through AWS Secrets to locate any match and update if found
     for aws_secret in aws_secrets.items():
         aws_secret_name  = aws_secret[0]
         aws_secret_value = aws_secret[1]
+        print(f"Currently processing AWS secret: {aws_secret_name} with value: {aws_secret_value}")
+
+
+        # TODO - Currently treating each sub key as a separate k/v but should be one and create alll 3 from a JSON
 
         # Validate that the AWS secret name matches the vault secret name
         if aws_secret_name == vault_secret_name_match:
@@ -184,10 +180,7 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
             else:
                 print(f"Secret with name {aws_secret_name} did not change, AWS version remains unchanged")
             return
-        else:
-            # TODO - Remove this, just for testing
-            print(f"AWS Secret with name: {aws_secret_name} does not match vault secret with name: {vault_secret_name_match}")
-
+        
     # Create a new AWS secret
     create_aws_secret(aws_secret_name, vault_secret_value)
     process_secret_regions(aws_secret_name)
