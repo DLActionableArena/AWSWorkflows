@@ -80,31 +80,18 @@ def update_aws_secret(aws_secret_name, aws_secret_value):
 
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
-    print(f"Would create AWS secret with name: {secret_name} with value {secret_value}")
-
-    # SecretsManager.Client.create_secret(**kwargs)  # ForceOverwriteReplicaSecret ???
-    #   USE if have one or more replication regions
-    #   Required permissions:
-    #       secretsmanager:CreateSecret
-    #       IF INCLUDE TAG: secretsmanager:TagResource
-    #       To AddReplicaRegions, you must also have secretsmanager:ReplicateSecretToRegions
-    #   Purpose: This method is used to create a brand new secret in AWS Secrets Manager.
-    #            It  establishes the secret"s name, description, and initial secret value.
-    #   When to use: Use create_secret when you are storing a secret for the first time,
-    #                and no secret with the specified name currently exists in Secrets Manager.
-
-    # try:
-    #     print(f"About to try to add secret: {secret_name}")
-    #     response = aws_client.create_secret(
-    #         Name=secret_name,
-    #         SecretString=secret_value
-    #     )
-    #     print(f"Secret {secret_name} created successfully.")
-    #     return response
-    # except aws_client.exceptions.ResourceExistsException:
-    #     print(f"Secret {secret_name} already exists.")
-    # except Exception as e:
-    #     print(f"Error creating secret {secret_name} : {e}")
+    try:
+        print(f"Adding AWS secret: {secret_name}")
+        response = aws_client.create_secret(
+            Name=secret_name,
+            SecretString=secret_value
+        )
+        print(f"Secret {secret_name} successfully created.")
+        return response
+    except aws_client.exceptions.ResourceExistsException:
+        print(f"Secret {secret_name} already exists.")
+    except Exception as e:
+        print(f"Error creating secret {secret_name} : {e}")
 
 def process_secret_regions(secret_name):
     """Process the specified secret regions"""
