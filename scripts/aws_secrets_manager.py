@@ -138,7 +138,7 @@ def create_aws_secret(secret_name, secret_value):
         response = aws_client.create_secret(
             Name=secret_name,
             SecretString=secret_value
-            #, AddReplicaRegions=[
+            #, AddReplicaRegions=[ 
             #{
             #    'Region': 'us-east-1'
             #    # , 'KmsKeyId': 'string'  # ARN for Custom KMS encryption key
