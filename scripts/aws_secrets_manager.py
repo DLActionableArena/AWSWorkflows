@@ -15,7 +15,7 @@ VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 #AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", DEFAULT_AWS_REGION)
-AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", None)
+AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME")
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 
 # TODO - Environment vars / execution
@@ -288,9 +288,9 @@ def main():
     print("Clients initialized successfully")
 
     if AWS_FILTER_SECRET_NAME is not None:
-        print(f"Apparently filtered : {AWS_FILTER_SECRET_NAME}")
+        print(f"Apparently filtered secret name: {AWS_FILTER_SECRET_NAME}")
     else:
-        print("Apparently NOT filtered")
+        print(f"Apparently NOT filtered secret name : {AWS_FILTER_SECRET_NAME}")
 
 
     aws_secrets = get_specific_secret(AWS_FILTER_SECRET_NAME)\
