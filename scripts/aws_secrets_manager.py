@@ -17,90 +17,10 @@ AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
 
-
+# Global variables
 aws_client = None
 
-# Secrets Dictionary: {
-#     "nprod/SyncAction": {
-#         "BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"
-#     },
-#     "nprod/AnotherAppSecret": {
-#         "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"
-#     },
-#     "nprod/Service/MutliRowSecret": {
-#         "key1": "value1",
-#         "key2": "value2",
-#         "key3": "value3"
-#     }
-# }
 
-def replicate_secret_change_to_regions(secret_name, secret_value):
-    """Replicate a secret change to all regions"""
-    # SecretsManager.Client.replicate_secret_to_regions(**kwargs) ???
-    #   Required permissions:
-    #       secretsmanager:ReplicateSecretToRegions
-    #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
-    try:
-        # TODO - Check this code
-        response = aws_client.replicate_secret_to_regions(
-            SecretId=secret_name,
-            AddReplicaRegions=[
-                {
-                    'Region': 'string',
-                    # 'KmsKeyId': 'string'
-                },
-            ]
-        )
-        print(f"Replicated secret {secret_name} to regions: {response}")
-        return response
-    except Exception as e:
-        print(f"Error replicating secret {secret_name}: {e}")
-        return None
-
-def update_aws_secret(aws_secret_name, aws_secret_value):
-    """Update an AWS secret"""
-    print(f"Would update AWS secret with name: {aws_secret_name} with value {aws_secret_value}")
-
-    # SecretsManager.Client.update_secret(**kwargs)
-    #   Use when you need to modify the secret"s metadata (description, KMS key, rotation configuration)
-    #       and/or update the secret value.
-    #   Required permissions:
-    #       secretsmanager:UpdateSecret
-    #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
-
-    # SecretsManager.Client.put_secret_value(**kwargs)
-    #   CANNOT USE if have one or more replication regions
-    #   Use when your sole purpose is to provide a new secret value, creating a new version of the secret,
-    #       and you don"t need to modify any other attributes.
-    #   Purpose: This method is used to add a new version of a secret to an existing secret.
-    #            It updates the secret"s value while retaining the history of previous versions.
-    #   When to use: Use put_secret_value when you need to update the value of an already existing secret,
-    #                such as during a secret rotation or when a credential changes.
-    #   Required permissions: secretsmanager:PutSecretValue
-
-def create_aws_secret(secret_name, secret_value):
-    """Create an AWS secret"""
-    try:
-        print(f"Adding AWS secret: {secret_name}")
-        response = aws_client.create_secret(
-            Name=secret_name,
-            SecretString=secret_value
-        )
-        print(f"Secret {secret_name} successfully created.")
-        return response
-    except aws_client.exceptions.ResourceExistsException:
-        print(f"Secret {secret_name} already exists.")
-    except Exception as e:
-        print(f"Error creating secret {secret_name} : {e}")
-
-def process_secret_regions(secret_name):
-    """Process the specified secret regions"""
-    replicated_regions = get_replicated_regions(secret_name)
-    if replicated_regions:
-        print(f"Secret {secret_name} is replicated to regions: {replicated_regions}")
-        # TODO - Replicate to all configured regions
-    else:
-        print(f"Secret {secret_name} is not replicated to any regions")
 
 def get_replicated_regions(secret_id):
     """
@@ -129,6 +49,108 @@ def get_replicated_regions(secret_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
+
+def process_secret_regions(secret_name):
+    """Process the specified secret regions"""
+    replicated_regions = get_replicated_regions(secret_name)
+    if replicated_regions:
+        print(f"Secret {secret_name} is replicated to regions: {replicated_regions}")
+        # TODO - Replicate to all configured regions
+    else:
+        print(f"Secret {secret_name} is not replicated to any regions")
+
+def replicate_secret_change_to_regions(secret_name, secret_value):
+    """Replicate a secret change to all regions"""
+    # SecretsManager.Client.replicate_secret_to_regions(**kwargs) ???
+    #   Required permissions:
+    #       secretsmanager:ReplicateSecretToRegions
+    #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
+    try:
+        # TODO - Check this code
+        response = aws_client.replicate_secret_to_regions(
+            SecretId=secret_name,
+            AddReplicaRegions=[
+                {
+                    'Region': 'us-east-1'
+                    # , 'KmsKeyId': 'string'  # ARN for Custom KMS encryption key
+                },
+            ]
+        )
+        print(f"Replicated secret {secret_name} to regions: {response}")
+        return response
+    except Exception as e:
+        print(f"Error replicating secret {secret_name}: {e}")
+        return None
+
+def update_aws_secret(secret_name, secret_value):
+    """Update an AWS secret"""
+    # Required permissions:
+    #   secretsmanager:CreateSecret
+    #   secretsmanager:TagResource (optional - If secret includes tags)
+    #   secretsmanager:ReplicateSecretToRegions (optional - If secret includes replica regions)
+
+    # SecretsManager.Client.update_secret(**kwargs)
+    #   Use when you need to modify the secret"s metadata (description, KMS key, rotation configuration)
+    #       and/or update the secret value.
+    #   Required permissions:
+    #       secretsmanager:UpdateSecret
+    #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
+
+    # SecretsManager.Client.put_secret_value(**kwargs)
+    #   CANNOT USE if have one or more replication regions
+    #   Use when your sole purpose is to provide a new secret value, creating a new version of the secret,
+    #       and you don"t need to modify any other attributes.
+    #   Purpose: This method is used to add a new version of a secret to an existing secret.
+    #            It updates the secret"s value while retaining the history of previous versions.
+    #   When to use: Use put_secret_value when you need to update the value of an already existing secret,
+    #                such as during a secret rotation or when a credential changes.
+    #   Required permissions: secretsmanager:PutSecretValue
+
+
+#    print(f"Would update AWS secret with name: {secret_name} with value {secret_value}")
+    try:
+        print(f"Updating AWS secret: {secret_name}")
+        response = aws_client.update_secret(
+            Name=secret_name,
+            SecretString=secret_value
+            #, AddReplicaRegions=[
+            #{
+            #    'Region': 'us-east-1'
+            #    # , 'KmsKeyId': 'string'  # ARN for Custom KMS encryption key
+            #},
+            #],
+        )
+        print(f"Secret {secret_name} successfully updated.")
+        # TODO - Process the response  ???
+    except aws_client.exceptions.ResourceExistsException:
+        print(f"Secret {secret_name} already exists.")
+    except Exception as e:
+        print(f"Error creating secret {secret_name} : {e}")
+
+def create_aws_secret(secret_name, secret_value):
+    """Create an AWS secret"""
+    # Required permissions:
+    #   secretsmanager:CreateSecret
+    #   secretsmanager:TagResource (optional - If secret includes tags)
+    #   secretsmanager:ReplicateSecretToRegions (optional - If secret includes replica regions)
+    try:
+        print(f"Adding AWS secret: {secret_name}")
+        response = aws_client.create_secret(
+            Name=secret_name,
+            SecretString=secret_value
+            #, AddReplicaRegions=[
+            #{
+            #    'Region': 'us-east-1'
+            #    # , 'KmsKeyId': 'string'  # ARN for Custom KMS encryption key
+            #},
+            #],
+        )
+        print(f"Secret {secret_name} successfully created.")
+        # TODO - Process the response  ???
+    except aws_client.exceptions.ResourceExistsException:
+        print(f"Secret {secret_name} already exists.")
+    except Exception as e:
+        print(f"Error creating secret {secret_name} : {e}")
 
 def extract_secret_name(vault_secret_name):
     """Returns the secret name from the provided path"""
@@ -159,12 +181,13 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
             aws_secret_value_str = json.dumps(aws_secret_value, sort_keys=True)
             if vault_secret_value_str != aws_secret_value_str:
                 print(f"Value change detected for AWS secret with name {aws_secret_name}, updating")
-                update_aws_secret(aws_secret_name, vault_secret_value)
-                process_secret_regions(aws_secret_name)
+                update_aws_secret(vault_secret_name_match, vault_secret_value_str)
+                process_secret_regions(vault_secret_name_match)
             else:
                 print(f"Secret with name {aws_secret_name} did not change, AWS version remains unchanged")
+
             return
-        
+
     # Create a new AWS secret
     create_aws_secret(vault_secret_name_match, vault_secret_value_str)
     process_secret_regions(vault_secret_name_match)
@@ -272,40 +295,6 @@ def main():
 
     aws_secrets = get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
-
-#    print(f"Retrieved {len(aws_secrets)} secrets from AWS Secrets Manager with secrets: {aws_secrets}")
-#    print(f"First secret: {aws_secrets["nprod/SyncAction"]}")
-#    print(f"Second secret: {aws_secrets["nprod/AnotherAppSecret"]}")
-#    print(f"Third secret: {aws_secrets["nprod/Service/MutliRowSecret"]}")
-
-# Secret name must contain only alphanumeric characters and the characters /_+=.@-
-# nprod/Service/MutliRowSecret - Secret Value: {}
-# nprod/AnotherAppSecret - Secret Value: {"Another secret" : "86bbb505-4499-4de0-9bff-60635b5b250c"}
-# nprod/SyncAction - Secret Value: {"BogusToken":"989e9ab0-de1e-4a12-9bad-a7b531cda777"}
-
-
-    # process_secret(aws_secrets, secret_name)
-    # for i, secret in enumerate(secrets, 1):
-    #     secret_name = secret["Name"]
-    #     print(f"\n[{i}] Secret Name: {secret_name}")
-
-    #     try:
-    #         # secret_value = get_secret_value(secret_name)
-    #         secret_value = json.loads(get_secret_value(secret_name))
-    #         if secret_value is not None:
-    #             # key, value = secret_value.popitem()
-    #             for  key, value in secret_value.items():
-    #                 print(f"Secret Value: key: {key} value: {value}")
-    #                 get_secret_details(secret_name)
-
-    #         rotation_details = get_secret_rotation_info(secret_name)
-    #         if rotation_details:
-    #             print(f"Rotation Details: {rotation_details}")
-    #         else:
-    #             print("No rotation details available")
-    #     except Exception as e:
-    #         print(f"Error retrieving details for secret {secret_name}: {e}")
-    #         continue
 
 if __name__ == "__main__":
     main()
