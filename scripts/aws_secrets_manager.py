@@ -161,6 +161,12 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
 
+    # TODO - Remove this
+    print(f"VAULT_AWS_SECRET_PATH is {VAULT_AWS_SECRET_PATH} with VAULT_AWS_SECRET_PATH_LEN {VAULT_AWS_SECRET_PATH_LEN}")
+    print(f"JSON string version of vault value: {vault_secret_value_str}")
+    print(f"The Vault secret name to match: {vault_secret_name_match}")
+
+
     # Iterate through AWS Secrets to locate any match and update if found
     for aws_secret in aws_secrets.items():
         aws_secret_name  = aws_secret[0]
