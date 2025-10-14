@@ -255,10 +255,14 @@ def process_mock_vault_data(aws_secrets):
         "aws/services/nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
     }
 
+    for secret in mock_vault_data:
+        print(f"Vault data secret {secret}")
+
     # Iterate through all the secrets and process them one at a time
     for secret in mock_vault_data.items():
         secret_name = secret[0]
         secret_value = secret[1]
+        print(f"Vault items iteration: secret: {secret} secret name: {secret_name} value: {secret_value}")
         process_secrets(aws_secrets, secret_name, secret_value)
 
 def initialize_clients():
