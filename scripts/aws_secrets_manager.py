@@ -89,7 +89,7 @@ def create_aws_secret(secret_name, secret_value):
     #       IF INCLUDE TAG: secretsmanager:TagResource
     #       To AddReplicaRegions, you must also have secretsmanager:ReplicateSecretToRegions
     #   Purpose: This method is used to create a brand new secret in AWS Secrets Manager.
-    #            It establishes the secret"s name, description, and initial secret value.
+    #            It  establishes the secret"s name, description, and initial secret value.
     #   When to use: Use create_secret when you are storing a secret for the first time,
     #                and no secret with the specified name currently exists in Secrets Manager.
 
