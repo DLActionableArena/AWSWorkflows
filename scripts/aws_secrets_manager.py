@@ -215,6 +215,7 @@ def get_specific_secret(secret_name):
     """Retrieve a specific AWS secret"""
     secret = {}
     try:
+        print(f"Retrieving specific secret_name {secret_name}")
         secret_value = get_secret_value(secret_name)
         if secret_value:
             secret[secret_name] = json.loads(secret_value)
