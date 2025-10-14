@@ -4,14 +4,19 @@ import urllib3
 import json
 
 DEFAULT_AWS_REGION = "us-east-2"
+DEFAULT_VAULT_PATH = "aws/services"
 AWS_SECRET_MANAGER="secretsmanager"
 AWS_SECURITY_TOKEN_SERVICE="sts"
+VAULT_AWS_SECRET_PATH = DEFAULT_VAULT_PATH if DEFAULT_VAULT_PATH.endswith("/") \
+                                           else  f"{DEFAULT_VAULT_PATH}/"
+VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 
 #AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 #AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
+
 
 aws_client = None
 
@@ -52,8 +57,10 @@ def replicate_secret_change_to_regions(secret_name, secret_value):
         print(f"Error replicating secret {secret_name}: {e}")
         return None
 
-def update_aws_secret(secret_name, secret_value):
+def update_aws_secret(aws_secret_name, aws_secret_value):
     """Update an AWS secret"""
+    print(f"Would update AWS secret with name: {aws_secret_name} with value {aws_secret_value}")
+
     # SecretsManager.Client.update_secret(**kwargs)
     #   Use when you need to modify the secret"s metadata (description, KMS key, rotation configuration)
     #       and/or update the secret value.
@@ -73,6 +80,8 @@ def update_aws_secret(secret_name, secret_value):
 
 def create_aws_secret(secret_name, secret_value):
     """Create an AWS secret"""
+    print(f"Would create AWS secret with name: {aws_secret_name} with value {aws_secret_value}")
+
     # SecretsManager.Client.create_secret(**kwargs)  # ForceOverwriteReplicaSecret ???
     #   USE if have one or more replication regions
     #   Required permissions:
@@ -84,6 +93,7 @@ def create_aws_secret(secret_name, secret_value):
     #   When to use: Use create_secret when you are storing a secret for the first time,
     #                and no secret with the specified name currently exists in Secrets Manager.
     try:
+        aws_secret_name = VAULT_AWS_SECRET_PATH
         response = aws_client.create_secret(
             Name=secret_name,
             SecretString=secret_value
@@ -95,68 +105,14 @@ def create_aws_secret(secret_name, secret_value):
     except Exception as e:
         print(f"Error creating secret: {e}")
 
-def create_multi_row_secret(secret_name, region_name, secret_data):
-    """
-    Creates a multi-row secret in AWS Secrets Manager.
-
-    Args:
-        secret_name (str): The name of the secret to create.
-        region_name (str): The AWS region where the secret will be stored.
-        secret_data (dict): A dictionary containing the key-value pairs for the secret.
-    """
-    # TODO - Check this code
-    client = boto3.client("secretsmanager", region_name=region_name)
-
-    try:
-        # Convert the dictionary to a JSON string
-        secret_string = json.dumps(secret_data)
-
-        response = client.create_secret(
-            Name=secret_name,
-            SecretString=secret_string
-        )
-        print(f"Secret {secret_name} created successfully.")
-        return response
-    except client.exceptions.ResourceExistsException:
-        print(f"Secret {secret_name} already exists.")
-    except Exception as e:
-        print(f"Error creating secret: {e}")
-
-# TODO - NOT EXACLT LIKE VAULT DUE TO MOCK
-def process_secrets(aws_secrets, secrets_path, secret_data):
-    """Process the specified secrets path and data"""
-    #print(f"Now processing secrets_path: {secrets_path} with data: {secret_data} and aws data: {aws_secrets}")
-
-    # Compare the vault data JSON value to aws JSON value after sorting the data
-    # to determine if the the data has changed or not
-    sorted_json_string = json.dumps(secret_data, sort_keys=True)
-    sorted_aws_secrets = json.dumps(aws_secrets, sort_keys=True)
-    print(f"Sorted vault data: {sorted_json_string} type: {type(sorted_json_string)}")
-    print(f"Sorted aws data: {sorted_aws_secrets} type: {type(sorted_aws_secrets)}")
-
-    for secret in aws_secrets.items():
-        secret_name = secret[0]
-        secret_value = json.dumps(secret[1], sort_keys=True)
-        print(f"AWS Secret Name: {secret_name} Secret Value: {secret_value} type: {type(secret_value)}")
-
-    try:
-        test_with_string   = json.dumps("BogusData", sort_keys=True)
-        print(f"Test with string: {test_with_string}")
-    except Exception as e:
-        print(f"Error creating secret: {e}")
-
-    try:
-        test_with_string   = json.load("BogusData")
-        print(f"Apparently treated as json")
-    except Exception as e:
-        print(f"Error trying to load from JSON : {e}")
-
-
-    # TODO
-    # Compare the vault path to the AWS secret name and look for either
-    # an exact match or aws as a subset of the vault data
-    # with a / or start oof the path  ie:  do not match  /akey/something   to key/something
-    # ie could append a / to the search when looking for match but would be extra step
+def process_secret_regions(secret_name):
+    """Process the specified secret regions"""
+    replicated_regions = get_replicated_regions(secret_name)
+    if replicated_regions:
+        print(f"Secret {secret_name} is replicated to regions: {replicated_regions}")
+        # TODO - Replicate to all configured regions
+    else:
+        print(f"Secret {secret_name} is not replicated to any regions")
 
 def get_replicated_regions(secret_id):
     """
@@ -185,6 +141,46 @@ def get_replicated_regions(secret_id):
     except Exception as e:
         print(f"An error occurred: {e}")
         return []
+
+def extract_secret_name(vault_secret_name):
+    """Returns the secret name from the provided path"""
+    secret_name = vault_secret_name
+    if  len(vault_secret_name) > len(VAULT_AWS_SECRET_PATH_LEN) and \
+        vault_secret_name.startswith(VAULT_AWS_SECRET_PATH):
+        secret_name = vault_secret_name[VAULT_AWS_SECRET_PATH_LEN]
+
+    return secret_name
+
+def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
+    """Process the specified secrets path and data"""
+    # Convert the secret value to JSON string for change validation
+    vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
+    vault_secret_name_match =  extract_secret_name(vault_secret_name)
+
+    # Iterate through AWS Secrets to locate any match and update if found
+    for aws_secret in aws_secrets.items():
+        aws_secret_name  = aws_secret[0]
+        aws_secret_value = aws_secret[1]
+
+        # Validate that the AWS secret name matches the vault secret name
+        if aws_secret_name == vault_secret_name_match:
+            # TODO - Remove this
+            print(f"AWS secret_name {aws_secret_name} is identical to Vault secret name: {vault_secret_name_match} ")
+            aws_secret_value_str = json.dumps(aws_secret_value, sort_keys=True)
+            if vault_secret_value_str != aws_secret_value_str:
+                print(f"Value change detected for AWS secret with name {aws_secret_name}, updating")
+                update_aws_secret(aws_secret_name, vault_secret_value)
+                process_secret_regions(aws_secret_name)
+            else:
+                print(f"Secret with name {aws_secret_name} did not change, AWS version remains unchanged")
+            return
+        else:
+            # TODO - Remove this, just for testing
+            print(f"AWS Secret with name: {aws_secret_name} does not match vault secret with name: {vault_secret_name_match}")
+
+    # Create a new AWS secret
+    create_aws_secret(aws_secret_name, vault_secret_value)
+    process_secret_regions(aws_secret_name)
 
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
@@ -248,18 +244,19 @@ def process_mock_vault_data(aws_secrets):
     """Mock Vault data for testing"""
     # Secret name must contain only alphanumeric characters and the characters /_+=.@-
     mock_vault_data = {
-        "aws/secrets" : {"BogusKey":"BogusSecret", "dumb-secret":"123"},
-        "aws/services/app1" : {"secret1":"value1"},
-        "aws/services/app2" : {"secret2":"value2"},
-        "aws/services/app3/nprod/SyncAction" : {"BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"},
-        "aws/services/app3/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b250c", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
-        "nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
+        "aws/services/app/Secrets" : {"BogusKey":"BogusSecret", "dumb-secret":"123"},
+        "aws/services/app1/Secrets" : {"secret1":"value1"},
+        "aws/services/app2/Secrets" : {"secret2":"value2"},
+        "aws/services/nprod/SyncAction" : {"BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"},
+        "aws/services/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b250c", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
+        "aws/services/nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
     }
 
+    # Iterate through all the secrets and process them one at a time
     for secret in mock_vault_data.items():
-        secret_path = secret[0]
-        secret_data = secret[1]
-        process_secrets(aws_secrets, secret_path, secret_data)
+        secret_name = secret[0]
+        secret_value = secret[1]
+        process_secrets(aws_secrets, secret_name, secret_value)
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
