@@ -156,8 +156,9 @@ def extract_secret_name(vault_secret_name):
 def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     """Process the specified secrets path and data"""
     # Convert the secret value to JSON string for change validation
-    vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
+    vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
+    print(f"Vault data to process secret name: {vault_secret_name_match} secret value: {vault_secret_value_str}" )
 
     # Iterate through AWS Secrets to locate any match and update if found
     for aws_secret in aws_secrets.items():
@@ -182,8 +183,8 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
             return
         
     # Create a new AWS secret
-    create_aws_secret(aws_secret_name, vault_secret_value)
-    process_secret_regions(aws_secret_name)
+    create_aws_secret(vault_secret_name, vault_secret_value)
+    process_secret_regions(vault_secret_name)
 
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
@@ -255,14 +256,10 @@ def process_mock_vault_data(aws_secrets):
         "aws/services/nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
     }
 
-    for secret in mock_vault_data:
-        print(f"Vault data secret {secret}")
-
     # Iterate through all the secrets and process them one at a time
     for secret in mock_vault_data.items():
         secret_name = secret[0]
         secret_value = secret[1]
-        print(f"Vault items iteration: secret: {secret} secret name: {secret_name} value: {secret_value}")
         process_secrets(aws_secrets, secret_name, secret_value)
 
 def initialize_clients():
