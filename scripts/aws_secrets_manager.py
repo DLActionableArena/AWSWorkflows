@@ -16,7 +16,9 @@ VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
-AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", None)
+AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
+
+
 
 # TODO - Environment vars / execution
 #      - Simulation mode
@@ -144,7 +146,7 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     """Process the specified secrets path and data"""
     # Convert the secret value to JSON string for change validation
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
-    if AWS_FILTER_SECRET_NAME is not None and vault_secret_name_match != AWS_FILTER_SECRET_NAME:
+    if len(AWS_FILTER_SECRET_NAME) >0 and vault_secret_name_match != AWS_FILTER_SECRET_NAME:
         print(f"Skipping processing of secret name: {vault_secret_name_match} does not match filtered secret name: {AWS_FILTER_SECRET_NAME}")
         return
 
@@ -244,6 +246,8 @@ def get_all_aws_secrets():
             continue
     return secrets
 
+
+
 # Simulate process_secrets in original code
 def process_mock_vault_data(aws_secrets):
     """Mock Vault data for testing"""
@@ -289,7 +293,7 @@ def main():
     print("Clients initialized successfully")
 
     aws_secrets = get_specific_secret(AWS_FILTER_SECRET_NAME)\
-                  if AWS_FILTER_SECRET_NAME is not None and len(AWS_FILTER_SECRET_NAME) > 0\
+                  if len(AWS_FILTER_SECRET_NAME) > 0\
                   else get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
 
