@@ -93,19 +93,18 @@ def create_aws_secret(secret_name, secret_value):
     #   When to use: Use create_secret when you are storing a secret for the first time,
     #                and no secret with the specified name currently exists in Secrets Manager.
 
-
-    # try:
-    #     aws_secret_name = VAULT_AWS_SECRET_PATH
-    #     response = aws_client.create_secret(
-    #         Name=secret_name,
-    #         SecretString=secret_value
-    #     )
-    #     print(f"Secret {secret_name} created successfully.")
-    #     return response
-    # except aws_client.exceptions.ResourceExistsException:
-    #     print(f"Secret {secret_name} already exists.")
-    # except Exception as e:
-    #     print(f"Error creating secret: {e}")
+    try:
+        print(f"About to try to add secret: {secret_name}")
+        response = aws_client.create_secret(
+            Name=secret_name,
+            SecretString=secret_value
+        )
+        print(f"Secret {secret_name} created successfully.")
+        return response
+    except aws_client.exceptions.ResourceExistsException:
+        print(f"Secret {secret_name} already exists.")
+    except Exception as e:
+        print(f"Error creating secret {secret_name} : {e}")
 
 def process_secret_regions(secret_name):
     """Process the specified secret regions"""
@@ -166,9 +165,6 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
         aws_secret_value = aws_secret[1]
         print(f"Currently processing AWS secret: {aws_secret_name} with value: {aws_secret_value}")
 
-
-        # TODO - Currently treating each sub key as a separate k/v but should be one and create alll 3 from a JSON
-
         # Validate that the AWS secret name matches the vault secret name
         if aws_secret_name == vault_secret_name_match:
             # TODO - Remove this
@@ -183,7 +179,7 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
             return
         
     # Create a new AWS secret
-    create_aws_secret(vault_secret_name, vault_secret_value)
+    create_aws_secret(vault_secret_name, vault_secret_value_str)
     process_secret_regions(vault_secret_name)
 
 def get_secret_value(secret_name):
