@@ -16,11 +16,15 @@ VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION")
+AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME")
+
+# TODO - Environment vars / execution
+#      - Simulation mode
+#      - Report of execution (according to mode)
+#      - Replicate to regions
 
 # Global variables
 aws_client = None
-
-
 
 def get_replicated_regions(secret_id):
     """
@@ -93,7 +97,6 @@ def update_aws_secret(secret_name, secret_value):
         )
         print(f"Secret {secret_name} successfully updated.")
         return response
-        # TODO - Process the response  ???
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
@@ -120,7 +123,6 @@ def create_aws_secret(secret_name, secret_value):
         )
         print(f"Secret {secret_name} successfully created.")
         return response
-        # TODO - Process the response  ???
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
@@ -142,13 +144,11 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     # Convert the secret value to JSON string for change validation
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
     vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
-    print(f"Vault data to process secret name: {vault_secret_name_match} secret value: {vault_secret_value_str}" )
 
     # Iterate through AWS Secrets to locate any match and update if found
     for aws_secret in aws_secrets.items():
         aws_secret_name  = aws_secret[0]
         aws_secret_value = aws_secret[1]
-        print(f"Currently processing AWS secret: {aws_secret_name} with value: {aws_secret_value}")
 
         # Validate that the AWS secret name matches the vault secret name
         if aws_secret_name == vault_secret_name_match:
@@ -204,6 +204,20 @@ def get_secret_rotation_info(secret_name):
     except aws_client.exceptions.ResourceNotFoundException:
         print(f"Secret {secret_name} not found.")
         return None
+
+def get_specific_secret(secret_name):
+    """Retrieve a specific AWS secret"""
+    secret = {}
+    try:
+        secret_value = get_secret_value(secret_name)
+        if secret_value:
+            secret[secret_name] = json.loads(secret_value)
+            print(f"Retrieved secret {secret_name} with value: {secret[secret_name]}")
+        else:
+            print(f"No value found for secret {secret_name}")
+    except Exception as e:
+        print(f"Error retrieving secret {secret_name}: {e}")
+    return secret
 
 def get_all_aws_secrets():
     """Retrieve all AWS secrets"""
@@ -267,7 +281,9 @@ def main():
     initialize_clients()
     print("Clients initialized successfully")
 
-    aws_secrets = get_all_aws_secrets()
+    aws_secrets = get_specific_secret(AWS_FILTER_SECRET_NAME)\
+                  if AWS_FILTER_SECRET_NAME is not None\
+                  else get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
 
 if __name__ == "__main__":
