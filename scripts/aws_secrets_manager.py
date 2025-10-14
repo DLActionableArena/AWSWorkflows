@@ -92,18 +92,20 @@ def create_aws_secret(secret_name, secret_value):
     #            It establishes the secret"s name, description, and initial secret value.
     #   When to use: Use create_secret when you are storing a secret for the first time,
     #                and no secret with the specified name currently exists in Secrets Manager.
-    try:
-        aws_secret_name = VAULT_AWS_SECRET_PATH
-        response = aws_client.create_secret(
-            Name=secret_name,
-            SecretString=secret_value
-        )
-        print(f"Secret {secret_name} created successfully.")
-        return response
-    except aws_client.exceptions.ResourceExistsException:
-        print(f"Secret {secret_name} already exists.")
-    except Exception as e:
-        print(f"Error creating secret: {e}")
+
+
+    # try:
+    #     aws_secret_name = VAULT_AWS_SECRET_PATH
+    #     response = aws_client.create_secret(
+    #         Name=secret_name,
+    #         SecretString=secret_value
+    #     )
+    #     print(f"Secret {secret_name} created successfully.")
+    #     return response
+    # except aws_client.exceptions.ResourceExistsException:
+    #     print(f"Secret {secret_name} already exists.")
+    # except Exception as e:
+    #     print(f"Error creating secret: {e}")
 
 def process_secret_regions(secret_name):
     """Process the specified secret regions"""
