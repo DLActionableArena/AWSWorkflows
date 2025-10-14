@@ -22,6 +22,7 @@ AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME")
 #      - Simulation mode
 #      - Report of execution (according to mode)
 #      - Replicate to regions
+#      - 
 
 # Global variables
 aws_client = None
@@ -177,7 +178,7 @@ def get_secret_value(secret_name):
         response = aws_client.get_secret_value(SecretId=secret_name)
         return response.get("SecretString", None)
     except Exception as e:
-        print(f"Error retrieving secret {secret_name}: {e}")
+        print(f"Error retrieving secret value{secret_name}: {e}")
         return None
 
 def get_secret_details(secret_name):
@@ -221,7 +222,7 @@ def get_specific_secret(secret_name):
         else:
             print(f"No value found for secret {secret_name}")
     except Exception as e:
-        print(f"Error retrieving secret {secret_name}: {e}")
+        print(f"Error retrieving specific secret {secret_name}: {e}")
     return secret
 
 def get_all_aws_secrets():
@@ -285,6 +286,12 @@ def main():
     """"Main function to demonstrate functionality"""
     initialize_clients()
     print("Clients initialized successfully")
+
+    if AWS_FILTER_SECRET_NAME is not None:
+        print(f"Apparently filtered : {AWS_FILTER_SECRET_NAME}")
+    else:
+        print("Apparently NOT filtered")
+
 
     aws_secrets = get_specific_secret(AWS_FILTER_SECRET_NAME)\
                   if AWS_FILTER_SECRET_NAME is not None\
