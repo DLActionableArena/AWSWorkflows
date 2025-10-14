@@ -16,7 +16,7 @@ VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
-AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME")
+AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", None)
 
 # TODO - Environment vars / execution
 #      - Simulation mode
@@ -288,14 +288,8 @@ def main():
     initialize_clients()
     print("Clients initialized successfully")
 
-    if AWS_FILTER_SECRET_NAME is not None and len(AWS_FILTER_SECRET_NAME) > 0:
-        print(f"Apparently filtered secret name: {AWS_FILTER_SECRET_NAME} len: {len(AWS_FILTER_SECRET_NAME)}")
-    else:
-        print(f"Apparently NOT filtered secret name : {AWS_FILTER_SECRET_NAME}")
-
-
     aws_secrets = get_specific_secret(AWS_FILTER_SECRET_NAME)\
-                  if AWS_FILTER_SECRET_NAME is not None\
+                  if AWS_FILTER_SECRET_NAME is not None and len(AWS_FILTER_SECRET_NAME) > 0\
                   else get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
 
