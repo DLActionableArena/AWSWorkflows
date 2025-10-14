@@ -254,7 +254,7 @@ def process_mock_vault_data(aws_secrets):
     # Secret name must contain only alphanumeric characters and the characters /_+=.@-
     mock_vault_data = {
         "aws/services/app/Secrets" : {"BogusKey":"BogusSecret", "dumb-secret":"456"},
-        "aws/services/app1/Secrets" : {"secret1":"value1"},
+        "aws/services/app1/Secrets" : {"secret1":"value1a"},
         "aws/services/app2/Secrets" : {"secret2":"value2a"},
         "aws/services/nprod/SyncAction" : {"BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"},
         "aws/services/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b2556", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
