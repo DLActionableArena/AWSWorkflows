@@ -82,7 +82,6 @@ def process_secret_regions(secret_name):
     added_regions = list(set(AWS_REPLICATE_REGIONS).difference(set(replicated_regions)))
 
     if added_regions:
-        print(f"Secret replicated region is")
         print(f"Secret {secret_name} has newly configured replication to regions: {added_regions}")
         # TODO - Distribute the change to defined regions (override true)
         #      - Compare regions and if one missing  push change to it ?
@@ -113,6 +112,8 @@ def create_aws_secret_replicated_regions():
         region = {}
         region["Region"]=replicate_region.strip
         regions.append(region)
+        print(f"Adding region: {region}")
+    print(f"Returning regions: {regions}")
     return regions
 
 def create_aws_secret(secret_name, secret_value):
