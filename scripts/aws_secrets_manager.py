@@ -17,6 +17,7 @@ AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
+AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
 
 # Global variables
 aws_client = None
@@ -71,6 +72,8 @@ def get_replicated_regions(secret_name):
 def process_secret_regions(secret_name):
     """Process the specified secret regions"""
     replicated_regions = get_replicated_regions(secret_name)
+    # TODO - remove this
+    print(f"The requested AWS_REPLICATE_REGIONS replicate regions are: {AWS_REPLICATE_REGIONS}  len: {len(AWS_REPLICATE_REGIONS)}")
     if replicated_regions:
         print(f"Secret {secret_name} is replicated to regions: {replicated_regions}")
         # TODO - Replicate to all configured regions
