@@ -33,22 +33,15 @@ aws_current_region = AWS_REGION
 #      - Version with single action (and script moved))
 
 
-def replicate_secret_change_to_new_regions(secret_name, secret_value):
+def replicate_secret_change_to_new_regions(secret_name, added_regions):
     """Replicate a secret change to all regions"""
-    # SecretsManager.Client.replicate_secret_to_regions(**kwargs) ???
     #   Required permissions:
     #       secretsmanager:ReplicateSecretToRegions
     #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
     try:
-        # TODO - Check this code
         response = aws_client.replicate_secret_to_regions(
             SecretId=secret_name,
-            AddReplicaRegions=[
-                {
-                    'Region': 'us-east-1'
-                    # , 'KmsKeyId': 'string'  # ARN for Custom KMS encryption key
-                },
-            ]
+            AddReplicaRegions=added_regions
         )
         print(f"Replicated secret {secret_name} to regions: {response}")
         return response
@@ -58,9 +51,11 @@ def replicate_secret_change_to_new_regions(secret_name, secret_value):
 
 def get_secret_replicated_regions(secret_name):
     """Retrieves the regions a secret is replicated to"""
-    replicated_regions = [aws_current_region]
-
     try:
+        # Include main to avoid it being considered as a replicated region
+        replicated_regions = [aws_current_region]
+
+        # Extract any currently defined replication regions for the secret name
         response = aws_client.describe_secret(SecretId=secret_name)
         if "ReplicationStatus" in response:
             for replica in response["ReplicationStatus"]:
@@ -76,16 +71,14 @@ def get_secret_replicated_regions(secret_name):
 
 def process_secret_regions(secret_name):
     """Apply the request secrets change to newly configured regions"""
+    # Retrieve all configured regions not already assigned to the secret name
+    # And find any newly added ones
     replicated_regions = get_secret_replicated_regions(secret_name)
-
-    # Compare to AWS_REPLICATE_REGIONS to determine if have new region
     added_regions = list(set(AWS_REPLICATE_REGIONS).difference(set(replicated_regions)))
 
     if added_regions:
         print(f"Secret {secret_name} has newly configured replication to regions: {added_regions}")
-        # TODO - Distribute the change to defined regions (override true)
-        #      - Compare regions and if one missing  push change to it ?
-        #        We currently DO NOT delete AWS secrets so ignore any existing replicated versions
+        replicate_secret_change_to_new_regions(secret_name, added_regions)
 
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
@@ -104,11 +97,11 @@ def update_aws_secret(secret_name, secret_value):
         print(f"Error updating secret {secret_name} : {e}")
     return None
 
-def create_aws_secret_replicated_regions():
+def create_aws_secret_replicated_regions(replicate_regions):
     """Generate and returns a replication regions list"""
     regions = []
 
-    for replicate_region in AWS_REPLICATE_REGIONS:
+    for replicate_region in replicate_regions:
         region = {}
         region["Region"]=replicate_region.strip()
         regions.append(region)
@@ -128,7 +121,7 @@ def create_aws_secret(secret_name, secret_value):
             response = aws_client.create_secret(
                 Name=secret_name,
                 SecretString=secret_value,
-                AddReplicaRegions=create_aws_secret_replicated_regions()
+                AddReplicaRegions=create_aws_secret_replicated_regions(AWS_REPLICATE_REGIONS)
             )
         else:
             response = aws_client.create_secret(
@@ -165,9 +158,6 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
 
     # Convert the value to JSON string (sorted keys) for comparison with AWS value
     vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
-
-    # TODO - Remove this, just a test
-    print(f"The created regions would be: {create_aws_secret_replicated_regions()}")
 
     # Iterate through AWS Secrets to locate any match and update if found
     for aws_secret in aws_secrets.items():
@@ -269,7 +259,7 @@ def process_mock_vault_data(aws_secrets):
     """Mock Vault data for testing"""
     # Secret name must contain only alphanumeric characters and the characters /_+=.@-
     mock_vault_data = {
-        "aws/services/app/Secrets" : {"BogusKey":"BogusSecret", "dumb-secret":"456"},
+        "aws/services/app/Secrets" : {"BogusKey":"BogusSecret", "dumb-secret":"789"},
         "aws/services/app1/Secrets" : {"secret1":"value1a"},
         "aws/services/app2/Secrets" : {"secret2":"value2a"},
         "aws/services/nprod/SyncAction" : {"BogusToken": "989e9ab0-de1e-4a12-9bad-a7b531cda777"},
