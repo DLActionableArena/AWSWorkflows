@@ -27,6 +27,7 @@ aws_client = None
 #      - Report of execution (according to mode)
 #      - Replicate to regions
 #      - Skip secrets with rotation (mention the secret name in generated report)
+#      - Environment execution support
 
 
 def replicate_secret_change_to_regions(secret_name, secret_value):
@@ -137,8 +138,9 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     """Process the specified secrets path and data"""
     # Convert the secret value to JSON string for change validation
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
-    if len(AWS_FILTER_SECRET_NAME) >0 and vault_secret_name_match != AWS_FILTER_SECRET_NAME:
-        print(f"Skipping processing of secret name: {vault_secret_name_match} does not match filtered secret name: {AWS_FILTER_SECRET_NAME}")
+    req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
+    if len(req_aws_filtered_secret_name) > 0 and vault_secret_name_match != req_aws_filtered_secret_name:
+        print(f"Skipping processing of secret name: {vault_secret_name_match} does not match filtered secret name: {req_aws_filtered_secret_name}")
         return
 
     # Convert the value to JSON string (sorted keys) for comparison with AWS value
@@ -284,8 +286,9 @@ def main():
     initialize_clients()
     print("Clients initialized successfully")
 
-    aws_secrets = get_specific_secret(AWS_FILTER_SECRET_NAME)\
-                  if len(AWS_FILTER_SECRET_NAME) > 0\
+    req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
+    aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
+                  if len(req_aws_filtered_secret_name) > 0\
                   else get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
 
