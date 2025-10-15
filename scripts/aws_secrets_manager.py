@@ -15,13 +15,13 @@ VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 #AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 #AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
-AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
 AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
 
 # Global variables
 aws_client = None
+aws_current_region = AWS_REGION
 
 # TODO - Environment vars / execution
 #      - Simulation mode
@@ -58,7 +58,8 @@ def replicate_secret_change_to_new_regions(secret_name, secret_value):
 
 def get_secret_replicated_regions(secret_name):
     """Retrieves the regions a secret is replicated to"""
-    replicated_regions = [get_secret_primary_region(secret_name)]
+    replicated_regions = [aws_current_region]
+
     try:
         response = aws_client.describe_secret(SecretId=secret_name)
         if "ReplicationStatus" in response:
@@ -188,15 +189,6 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     # Create a new AWS secret and possibly replicate to other regions
     create_aws_secret(vault_secret_name_match, vault_secret_value_str)
 
-def get_secret_primary_region(secret_name):
-    """Retrieves the primary region of an AWS Secrets Manager secret"""
-    try:
-        response = aws_client.describe_secret(SecretId=secret_name)
-        return response.get('PrimaryRegion')
-    except ClientError as e:
-        print(f"Error describing secret '{secret_name}': {e}")
-        return None
-
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
     try:
@@ -301,6 +293,10 @@ def initialize_clients():
         # Use sts to validate we are really authenticated else witl throw
         sts_client = boto3.client("sts")
         sts_client.get_caller_identity()
+
+        # Extract the current region
+        session = boto3.Session()
+        aws_current_region = session.region_name
 
         # Suppress SSL warnings if needed
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
