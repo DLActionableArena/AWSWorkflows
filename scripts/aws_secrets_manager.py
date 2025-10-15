@@ -1,6 +1,7 @@
 import os
 import boto3
-from botocore.exceptions import ClientError, ResourceNotFoundException, ResourceExistsException 
+from boto3.exceptions import ResourceExistsException, ResourceNotFoundException
+from botocore.exceptions import ClientError
 import urllib3
 import json
 
@@ -136,7 +137,7 @@ def create_aws_secret(secret_name, secret_value):
             )
         print(f"Secret {secret_name} successfully created.")
         return response
-    # except aws_client.exceptions.ResourceExistsException:
+    #except aws_client.exceptions.ResourceExistsException:
     except ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
