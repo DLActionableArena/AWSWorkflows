@@ -12,12 +12,13 @@ VAULT_AWS_SECRET_PATH = DEFAULT_VAULT_PATH if DEFAULT_VAULT_PATH.endswith("/") \
                                            else  f"{DEFAULT_VAULT_PATH}/"
 VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 
-#AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-#AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
-AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
+AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") \
+                        if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
+SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False") == "True"
+ENVIRONMENT = os.getenv("ENVIRONMENT", "DEV")
 
 # Global variables
 aws_client = None
@@ -26,7 +27,6 @@ aws_current_region = AWS_REGION
 # TODO - Environment vars / execution
 #      - Simulation mode
 #      - Report of execution (according to mode)
-#      - Replicate to regions
 #      - Skip secrets with rotation (mention the secret name in generated report)
 #      - Environment execution support
 #      - Validate if still need split of admin namespace and child sub namespace since using GitHub OIDC
@@ -79,8 +79,6 @@ def process_secret_regions(secret_name):
     if len(added_regions) > 0:
         print(f"Secret {secret_name} has newly configured replication to regions: {added_regions}")
         replicate_secret_change_to_new_regions(secret_name, added_regions)
-    else:
-        print(f"No regions changes detected")
 
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
@@ -296,7 +294,7 @@ def initialize_clients():
 def main():
     """"Main function to demonstrate functionality"""
     initialize_clients()
-    print("Clients initialized successfully")
+    print(f"Clients initialized successfully for environment: {ENVIRONMENT}")
 
     req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
     aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
