@@ -110,7 +110,7 @@ def create_aws_secret_replicated_regions():
 
     for replicate_region in AWS_REPLICATE_REGIONS:
         region = {}
-        region["Region"]=replicate_region.strip
+        region["Region"]=replicate_region.strip()
         regions.append(region)
         print(f"Adding region: {region}")
     print(f"Returning regions: {regions}")
