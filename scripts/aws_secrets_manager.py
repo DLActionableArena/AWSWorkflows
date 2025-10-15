@@ -295,7 +295,7 @@ def main():
     """"Main function to demonstrate functionality"""
     initialize_clients()
     test_str = "dev"
-    print(f"Clients initialized successfully for environment: {ENVIRONMENT} is dev: {ENVIRONMENT == test_str}")
+    print(f"Clients initialized successfully for environment: {ENVIRONMENT}")
 
     req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
     aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
