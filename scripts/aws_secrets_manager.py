@@ -18,53 +18,14 @@ AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
 
-
+# Global variables
+aws_client = None
 
 # TODO - Environment vars / execution
 #      - Simulation mode
 #      - Report of execution (according to mode)
 #      - Replicate to regions
-#      - Filtering single secret
 
-# Global variables
-aws_client = None
-
-def get_replicated_regions(secret_id):
-    """
-    Retrieves the regions a secret is replicated to.
-
-    Args:
-        secret_id (str): The ARN or friendly name of the secret.
-
-    Returns:
-        list: A list of region names where the secret is replicated,
-              or an empty list if not replicated or an error occurs.
-    """
-    # TODO - Check this code
-    client = boto3.client("secretsmanager")
-    try:
-        response = client.describe_secret(SecretId=secret_id)
-        replicated_regions = []
-        if "ReplicationStatus" in response:
-            for replica in response["ReplicationStatus"]:
-                if "Region" in replica:
-                    replicated_regions.append(replica["Region"])
-        return replicated_regions
-    except client.exceptions.ResourceNotFoundException:
-        print(f"Secret {secret_id} not found.")
-        return []
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
-
-def process_secret_regions(secret_name):
-    """Process the specified secret regions"""
-    replicated_regions = get_replicated_regions(secret_name)
-    if replicated_regions:
-        print(f"Secret {secret_name} is replicated to regions: {replicated_regions}")
-        # TODO - Replicate to all configured regions
-    else:
-        print(f"Secret {secret_name} is not replicated to any regions")
 
 def replicate_secret_change_to_regions(secret_name, secret_value):
     """Replicate a secret change to all regions"""
@@ -88,6 +49,32 @@ def replicate_secret_change_to_regions(secret_name, secret_value):
     except Exception as e:
         print(f"Error replicating secret {secret_name}: {e}")
         return None
+
+def get_replicated_regions(secret_name):
+    """Retrieves the regions a secret is replicated to"""
+    replicated_regions = []
+    try:
+        response = aws_client.describe_secret(SecretId=secret_name)
+        if "ReplicationStatus" in response:
+            for replica in response["ReplicationStatus"]:
+                if "Region" in replica:
+                    replicated_regions.append(replica["Region"])
+
+    except aws_client.exceptions.ResourceNotFoundException:
+        print(f"Unable to retrieve regions, secret {secret_name} not found.")
+    except Exception as e:
+        print(f"An error occurred retrieving secret {secret_name} regions: {e}")
+
+    return replicated_regions
+
+def process_secret_regions(secret_name):
+    """Process the specified secret regions"""
+    replicated_regions = get_replicated_regions(secret_name)
+    if replicated_regions:
+        print(f"Secret {secret_name} is replicated to regions: {replicated_regions}")
+        # TODO - Replicate to all configured regions
+    else:
+        print(f"Secret {secret_name} is not replicated to any regions")
 
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
