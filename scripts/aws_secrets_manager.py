@@ -25,6 +25,7 @@ aws_client = None
 #      - Simulation mode
 #      - Report of execution (according to mode)
 #      - Replicate to regions
+#      - Skip secrets with rotation (mention the secret name in generated report)
 
 
 def replicate_secret_change_to_regions(secret_name, secret_value):
@@ -153,7 +154,8 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
                 update_aws_secret(vault_secret_name_match, vault_secret_value_str)
                 process_secret_regions(vault_secret_name_match)
             else:
-                print(f"Secret with name {aws_secret_name} did not change, AWS version remains unchanged")
+                print(f"Secret with name {vault_secret_name_match} did not change, AWS version remains unchanged")
+                process_secret_regions(vault_secret_name_match)
 
             return
 
@@ -222,6 +224,8 @@ def get_all_aws_secrets():
     paginator = aws_client.get_paginator("list_secrets")
     for page in paginator.paginate():
         secrets_details.extend(page.get("SecretList", []))
+
+    # TODO - Remove this, just for testing
     print(f"Total secrets found: {len(secrets_details)} with keys: {secrets_details}")
 
     for secret in secrets_details:
@@ -232,8 +236,6 @@ def get_all_aws_secrets():
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
     return secrets
-
-
 
 # Simulate process_secrets in original code
 def process_mock_vault_data(aws_secrets):
