@@ -1,6 +1,5 @@
 import os
 import boto3
-from boto3.exceptions import ResourceExistsException, ResourceNotFoundException
 from botocore.exceptions import ClientError
 import urllib3
 import json
@@ -31,6 +30,7 @@ aws_client = None
 #      - Skip secrets with rotation (mention the secret name in generated report)
 #      - Environment execution support
 #      - Validate if still need split of admin namespace and child sub namespace since using GitHub OIDC
+#      - Version with single action (and script moved))
 
 
 def replicate_secret_change_to_new_regions(secret_name, secret_value):
@@ -66,8 +66,7 @@ def get_secret_replicated_regions(secret_name):
                 if "Region" in replica:
                     replicated_regions.append(replica["Region"])
 
-    #except aws_client.exceptions.ResourceNotFoundException:
-    except ResourceNotFoundException:
+    except aws_client.exceptions.ResourceNotFoundException:
         print(f"Unable to retrieve regions, secret {secret_name} not found.")
     except Exception as e:
         print(f"An error occurred retrieving secret {secret_name} regions: {e}")
@@ -99,8 +98,7 @@ def update_aws_secret(secret_name, secret_value):
         )
         print(f"Secret {secret_name} successfully updated.")
         return response
-    #except aws_client.exceptions.ResourceExistsException:
-    except ResourceExistsException:
+    except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
         print(f"Error updating secret {secret_name} : {e}")
@@ -137,8 +135,7 @@ def create_aws_secret(secret_name, secret_value):
             )
         print(f"Secret {secret_name} successfully created.")
         return response
-    #except aws_client.exceptions.ResourceExistsException:
-    except ResourceExistsException:
+    except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
         print(f"Error creating secret {secret_name} : {e}")
@@ -235,8 +232,7 @@ def get_secret_rotation_info(secret_name):
             rotation_rules = response.get("RotationRules")
             return rotation_rules
 
-    #except aws_client.exceptions.ResourceNotFoundException:
-    except ResourceNotFoundException:
+    except aws_client.exceptions.ResourceNotFoundException:
         print(f"Secret {secret_name} not found.")
         return None
 
