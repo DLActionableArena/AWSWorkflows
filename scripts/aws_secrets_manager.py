@@ -41,7 +41,7 @@ def replicate_secret_change_to_new_regions(secret_name, added_regions):
     try:
         response = aws_client.replicate_secret_to_regions(
             SecretId=secret_name,
-            AddReplicaRegions=added_regions
+            AddReplicaRegions=create_aws_secret_replicated_regions(added_regions)
         )
         print(f"Replicated secret {secret_name} to regions: {response}")
         return response
