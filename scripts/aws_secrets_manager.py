@@ -76,9 +76,11 @@ def process_secret_regions(secret_name):
     replicated_regions = get_secret_replicated_regions(secret_name)
     added_regions = list(set(AWS_REPLICATE_REGIONS).difference(set(replicated_regions)))
 
-    if added_regions:
+    if len(added_regions) > 0:
         print(f"Secret {secret_name} has newly configured replication to regions: {added_regions}")
         replicate_secret_change_to_new_regions(secret_name, added_regions)
+    else:
+        print(f"No regions changes detected")
 
 def update_aws_secret(secret_name, secret_value):
     """Update an AWS secret"""
@@ -156,22 +158,24 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
         print(f"Skip secret name: {vault_secret_name_match} no match to filtered: {req_aws_filtered_secret_name}")
         return
 
-    # Convert the value to JSON string (sorted keys) for comparison with AWS value
-    vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True) # Convert to string/JSON
+    # Convert the value to JSON/string (sorted keys) for comparison with AWS value
+    vault_secret_value_str = json.dumps(vault_secret_value, sort_keys=True)
 
     # Iterate through AWS Secrets to locate any match and update if found
     for aws_secret in aws_secrets.items():
         aws_secret_name  = aws_secret[0]
         aws_secret_value = aws_secret[1]
 
-        # Validate that the AWS secret name matches the vault secret name
+        # Process the secret if a name match is found
         if aws_secret_name == vault_secret_name_match:
+            # Convert the value to JSON/string (sorted keys) for comparison with vault value
             aws_secret_value_str = json.dumps(aws_secret_value, sort_keys=True)
+
             if vault_secret_value_str != aws_secret_value_str:
                 print(f"Value change detected for AWS secret with name {aws_secret_name}, updating")
                 update_aws_secret(vault_secret_name_match, vault_secret_value_str)
             else:
-                print(f"Secret with name {vault_secret_name_match} did not change, AWS version remains unchanged")
+                print(f"No change detected to AWS Secret name {vault_secret_name_match}")
 
             # Possibly dispatch secret to newly configured regions
             process_secret_regions(vault_secret_name_match)
@@ -189,6 +193,7 @@ def get_secret_value(secret_name):
         print(f"Error retrieving secret value{secret_name}: {e}")
         return None
 
+# Not currently used ...
 def get_secret_details(secret_name):
     """Retrieve details of a specific secret from AWS Secrets Manager"""
     try:
@@ -199,15 +204,9 @@ def get_secret_details(secret_name):
         print(f"Error retrieving secret details for {secret_name}: {e}")
         return None
 
+# Not currently used ...
 def get_secret_rotation_info(secret_name):
-    """
-    Retrieves rotation information for a given secret in AWS Secrets Manager.
-    Args:
-        secret_name (str): The name or ARN of the secret.
-    Returns:
-        dict: A dictionary containing the secret"s rotation configuration,
-              or None if no rotation is configured or an error occurs.
-    """
+    """Retrieves rotation information for a given secret in AWS Secrets Manager."""
     try:
         response = aws_client.describe_secret(SecretId=secret_name)
 
@@ -241,9 +240,6 @@ def get_all_aws_secrets():
     paginator = aws_client.get_paginator("list_secrets")
     for page in paginator.paginate():
         secrets_details.extend(page.get("SecretList", []))
-
-    # TODO - Remove this, just for testing
-    print(f"Total secrets found: {len(secrets_details)} with keys: {secrets_details}")
 
     for secret in secrets_details:
         try:
