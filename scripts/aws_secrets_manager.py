@@ -1,5 +1,6 @@
 import os
 import boto3
+from botocore.exceptions import ClientError, ResourceNotFoundException, ResourceExistsException 
 import urllib3
 import json
 
@@ -56,7 +57,7 @@ def replicate_secret_change_to_new_regions(secret_name, secret_value):
 
 def get_secret_replicated_regions(secret_name):
     """Retrieves the regions a secret is replicated to"""
-    replicated_regions = []
+    replicated_regions = [get_secret_primary_region(secret_name)]
     try:
         response = aws_client.describe_secret(SecretId=secret_name)
         if "ReplicationStatus" in response:
@@ -64,7 +65,8 @@ def get_secret_replicated_regions(secret_name):
                 if "Region" in replica:
                     replicated_regions.append(replica["Region"])
 
-    except aws_client.exceptions.ResourceNotFoundException:
+    #except aws_client.exceptions.ResourceNotFoundException:
+    except ResourceNotFoundException:
         print(f"Unable to retrieve regions, secret {secret_name} not found.")
     except Exception as e:
         print(f"An error occurred retrieving secret {secret_name} regions: {e}")
@@ -79,6 +81,7 @@ def process_secret_regions(secret_name):
     added_regions = list(set(AWS_REPLICATE_REGIONS).difference(set(replicated_regions)))
 
     if added_regions:
+        print(f"Secret replicated region is")
         print(f"Secret {secret_name} has newly configured replication to regions: {added_regions}")
         # TODO - Distribute the change to defined regions (override true)
         #      - Compare regions and if one missing  push change to it ?
@@ -95,7 +98,8 @@ def update_aws_secret(secret_name, secret_value):
         )
         print(f"Secret {secret_name} successfully updated.")
         return response
-    except aws_client.exceptions.ResourceExistsException:
+    #except aws_client.exceptions.ResourceExistsException:
+    except ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
         print(f"Error updating secret {secret_name} : {e}")
@@ -104,7 +108,7 @@ def update_aws_secret(secret_name, secret_value):
 def create_aws_secret_replicated_regions():
     """Generate and returns a replication regions list"""
     regions = []
-    
+
     for replicate_region in AWS_REPLICATE_REGIONS:
         region = {}
         region["Region"]=replicate_region.strip
@@ -132,7 +136,8 @@ def create_aws_secret(secret_name, secret_value):
             )
         print(f"Secret {secret_name} successfully created.")
         return response
-    except aws_client.exceptions.ResourceExistsException:
+    # except aws_client.exceptions.ResourceExistsException:
+    except ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
     except Exception as e:
         print(f"Error creating secret {secret_name} : {e}")
@@ -185,6 +190,15 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     # Create a new AWS secret and possibly replicate to other regions
     create_aws_secret(vault_secret_name_match, vault_secret_value_str)
 
+def get_secret_primary_region(secret_name):
+    """Retrieves the primary region of an AWS Secrets Manager secret"""
+    try:
+        response = aws_client.describe_secret(SecretId=secret_name)
+        return response.get('PrimaryRegion')
+    except ClientError as e:
+        print(f"Error describing secret '{secret_name}': {e}")
+        return None
+
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
     try:
@@ -220,7 +234,8 @@ def get_secret_rotation_info(secret_name):
             rotation_rules = response.get("RotationRules")
             return rotation_rules
 
-    except aws_client.exceptions.ResourceNotFoundException:
+    #except aws_client.exceptions.ResourceNotFoundException:
+    except ResourceNotFoundException:
         print(f"Secret {secret_name} not found.")
         return None
 
