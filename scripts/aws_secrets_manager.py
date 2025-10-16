@@ -86,9 +86,10 @@ def generate_execution_summary():
         Simulation Mode: {SIMULATION_MODE}
         Execution Status: {execution_status}
     """
+    print(report)
 
-    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-        print(report, file=fh)
+#    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+#        print(report, file=fh)
 
     # For multi-line output or complex data (e.g., JSON)
     # delimiter = 'EOF'
