@@ -17,8 +17,6 @@ AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
 AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
 AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") \
                         if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
-
-SKIP_SECRET_WITH_ROTATION = os.getenv("SKIP_SECRET_WITH_ROTATION", "tRUE") == "True"
 SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False") == "True"
 ENVIRONMENT = os.getenv("ENVIRONMENT", "DEV")
 
@@ -30,7 +28,6 @@ aws_current_region = AWS_REGION
 #      - Simulation mode
 #      - Report of execution (according to mode)
 
-#      - Skip secrets with rotation (mention the secret name in generated report)
 #      - Environment execution support
 #      - Validate if still need split of admin namespace and child sub namespace since using GitHub OIDC
 #      - Version with single action (and script moved))
@@ -183,9 +180,7 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
             return
 
     # Create a new AWS secret and possibly replicate to other regions
-    if  SKIP_SECRET_WITH_ROTATION or \
-        get_secret_rotation_info(vault_secret_name_match) is None:
-        create_aws_secret(vault_secret_name_match, vault_secret_value_str)
+    create_aws_secret(vault_secret_name_match, vault_secret_value_str)
 
 def get_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
@@ -194,20 +189,6 @@ def get_secret_value(secret_name):
         return response.get("SecretString", None)
     except Exception as e:
         print(f"Error retrieving secret value{secret_name}: {e}")
-        return None
-
-# Not currently used ...
-def get_secret_rotation_info(secret_name):
-    """Retrieves rotation information for a given secret in AWS Secrets Manager."""
-    try:
-        response = aws_client.describe_secret(SecretId=secret_name)
-
-        if "RotationEnabled" in response and response["RotationEnabled"]:
-            rotation_rules = response.get("RotationRules")
-            return rotation_rules
-
-    except aws_client.exceptions.ResourceNotFoundException:
-        print(f"Secret {secret_name} not found.")
         return None
 
 def get_specific_secret(secret_name):
