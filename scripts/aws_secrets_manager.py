@@ -95,11 +95,12 @@ def replicate_secret_change_to_new_regions(secret_name, added_regions):
     #       secretsmanager:ReplicateSecretToRegions
     #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
     try:
-        aws_client.replicate_secret_to_regions(
-            SecretId=secret_name,
-            AddReplicaRegions=create_aws_secret_replicated_regions(added_regions)
-        )
-        print(f"Replicated secret {secret_name} to regions: {added_regions}")
+        if not SIMULATION_MODE:
+            aws_client.replicate_secret_to_regions(
+                SecretId=secret_name,
+                AddReplicaRegions=create_aws_secret_replicated_regions(added_regions)
+            )
+            print(f"Replicated secret {secret_name} to regions: {added_regions}")
         execution_stats[NEW_REPLICATION_SECRETS].append(secret_name)
     except Exception as e:
         print(f"Error replicating secret {secret_name}: {e}")
@@ -140,11 +141,12 @@ def update_aws_secret(secret_name, secret_value):
     # Required permissions:
     #   secretsmanager:UpdateSecret
     try:
-        aws_client.update_secret(
-            SecretId=secret_name,
-            SecretString=secret_value
-        )
-        print(f"Secret {secret_name} successfully updated.")
+        if not SIMULATION_MODE:
+            aws_client.update_secret(
+                SecretId=secret_name,
+                SecretString=secret_value
+            )
+            print(f"Secret {secret_name} successfully updated.")
         execution_stats[UPDATED_SECRETS].append(secret_name)
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
@@ -174,18 +176,20 @@ def create_aws_secret(secret_name, secret_value):
     try:
         print(f"Adding AWS secret: {secret_name}")
         if len(AWS_REPLICATE_REGIONS) > 0:
-            aws_client.create_secret(
-                Name=secret_name,
-                SecretString=secret_value,
-                AddReplicaRegions=create_aws_secret_replicated_regions(AWS_REPLICATE_REGIONS)
-            )
+            if not SIMULATION_MODE:
+                aws_client.create_secret(
+                    Name=secret_name,
+                    SecretString=secret_value,
+                    AddReplicaRegions=create_aws_secret_replicated_regions(AWS_REPLICATE_REGIONS)
+                )
+                print(f"Secret {secret_name} successfully created with replicas.")
             execution_stats[NEW_REPLICATION_SECRETS].append(secret_name)
-        else:
+        elif not SIMULATION_MODE:
             aws_client.create_secret(
                 Name=secret_name,
                 SecretString=secret_value
             )
-        print(f"Secret {secret_name} successfully created.")
+            print(f"Secret {secret_name} successfully created.")
         execution_stats[CREATED_SECRETS].append(secret_name)
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
@@ -329,6 +333,8 @@ def main():
     initialize_clients()
 
     print(f"Clients initialized successfully for environment: {ENVIRONMENT}")
+    if SIMULATION_MODE:
+        print("Executing in simulation mode : No modifications will be performed")
 
     req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
     aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
