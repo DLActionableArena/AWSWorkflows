@@ -297,7 +297,17 @@ def process_mock_vault_data(aws_secrets):
         "aws/services/nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
     }
 
-    print(f"Secret Data retrieved from AWS: {aws_secrets}")
+    # AWS Data received (for Mock)
+    # Secret Data retrieved from AWS: 
+    # {
+    #   'nprod/SyncAction': {'BogusToken': '989e9ab0-de1e-4a12-9bad-a7b531cda777'},
+    #   'nprod/AnotherAppSecret': {'Another secret': '86bbb505-4499-4de0-9bff-60635b5b250c',
+    #   'Secret': '47aaa505-4499-4de0-9baa-60635b5b2556'}, 
+    #   'nprod/Service/MutliRowSecret': {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}, 
+    #   'app/Secrets': {'BogusKey': 'BogusSecret', 'dumb-secret': '789'}, 
+    #   'app1/Secrets': {'secret1': 'value1a'}, 
+    #   'app2/Secrets': {'secret2': 'value2a'}
+    #}
 
     # Iterate through all the secrets and process them one at a time
     for secret in mock_vault_data.items():
