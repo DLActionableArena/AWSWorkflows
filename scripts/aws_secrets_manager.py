@@ -48,14 +48,14 @@ error_stats = {
 
 def generate_execution_summary():
     """Generate an execution summary for display as the job summary"""
-    
-    created_secrets_count = len(execution_stats[CREATED_SECRETS])
-    updated_secrets_count = len(execution_stats[UPDATED_SECRETS])
+
+    created_secrets_count    = len(execution_stats[CREATED_SECRETS])
+    updated_secrets_count    = len(execution_stats[UPDATED_SECRETS])
     unmodified_secrets_count = len(execution_stats[UNMODIFIED_SECRETS])
     replicated_secrets_count = len(execution_stats[NEW_REPLICATION_SECRETS])
-    total_secrets_count = created_secrets_count + \
-                          updated_secrets_count + \
-                          unmodified_secrets_count
+    total_secrets_count      = created_secrets_count + \
+                               updated_secrets_count + \
+                               unmodified_secrets_count
 
     created_secrets_errors = len(error_stats[CREATED_SECRETS])
     updated_secrets_errors = len(error_stats[UPDATED_SECRETS])
@@ -87,17 +87,8 @@ def generate_execution_summary():
         Execution Status: {execution_status}
     """
 
-#    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
     with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as fh:
         print(f'{report}', file=fh)
-
-    # For multi-line output or complex data (e.g., JSON)
-    # delimiter = 'EOF'
-    # complex_data = {"status": execution_status, "count": results_count}
-    # with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-    #     print(f'complex_output<<{delimiter}', file=fh)
-    #     print(json.dumps(complex_data), file=fh)
-    #     print(delimiter, file=fh)
 
 def replicate_secret_change_to_new_regions(secret_name, added_regions):
     """Replicate a secret change to all regions"""
@@ -105,16 +96,14 @@ def replicate_secret_change_to_new_regions(secret_name, added_regions):
     #       secretsmanager:ReplicateSecretToRegions
     #       if  encrypted with custom key: kms:Decrypt, kms:GenerateDataKey and kms:Encrypt
     try:
-        response = aws_client.replicate_secret_to_regions(
+        aws_client.replicate_secret_to_regions(
             SecretId=secret_name,
             AddReplicaRegions=create_aws_secret_replicated_regions(added_regions)
         )
-        print(f"Replicated secret {secret_name} to regions: {response}")
+        print(f"Replicated secret {secret_name} to regions: {added_regions}")
         execution_stats[NEW_REPLICATION_SECRETS].append(secret_name)
-        return response
     except Exception as e:
         print(f"Error replicating secret {secret_name}: {e}")
-        return None
 
 def get_secret_replicated_regions(secret_name):
     """Retrieves the regions a secret is replicated to"""
@@ -152,20 +141,18 @@ def update_aws_secret(secret_name, secret_value):
     # Required permissions:
     #   secretsmanager:UpdateSecret
     try:
-        response = aws_client.update_secret(
+        aws_client.update_secret(
             SecretId=secret_name,
             SecretString=secret_value
         )
         print(f"Secret {secret_name} successfully updated.")
         execution_stats[UPDATED_SECRETS].append(secret_name)
-        return response
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
         error_stats[UPDATED_SECRETS].append(secret_name)
     except Exception as e:
         print(f"Error updating secret {secret_name} : {e}")
         error_stats[UPDATED_SECRETS].append(secret_name)
-    return None
 
 def create_aws_secret_replicated_regions(replicate_regions):
     """Generate and returns a replication regions list"""
@@ -188,28 +175,25 @@ def create_aws_secret(secret_name, secret_value):
     try:
         print(f"Adding AWS secret: {secret_name}")
         if len(AWS_REPLICATE_REGIONS) > 0:
-            response = aws_client.create_secret(
+            aws_client.create_secret(
                 Name=secret_name,
                 SecretString=secret_value,
                 AddReplicaRegions=create_aws_secret_replicated_regions(AWS_REPLICATE_REGIONS)
             )
             execution_stats[NEW_REPLICATION_SECRETS].append(secret_name)
         else:
-            response = aws_client.create_secret(
+            aws_client.create_secret(
                 Name=secret_name,
                 SecretString=secret_value
             )
         print(f"Secret {secret_name} successfully created.")
         execution_stats[CREATED_SECRETS].append(secret_name)
-        return response
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
         error_stats[CREATED_SECRETS].append(secret_name)
     except Exception as e:
         print(f"Error creating secret {secret_name} : {e}")
         error_stats[CREATED_SECRETS].append(secret_name)
-
-    return None
 
 def extract_secret_name(vault_secret_name):
     """Returns the secret name from the provided path"""
