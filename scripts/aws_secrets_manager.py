@@ -8,6 +8,16 @@ DEFAULT_AWS_REGION = "us-east-2"
 DEFAULT_VAULT_PATH = "aws/services"
 AWS_SECRET_MANAGER="secretsmanager"
 AWS_SECURITY_TOKEN_SERVICE="sts"
+
+CREATED_SECRETS =  "CreatedSecretsCount"
+UPDATED_SECRETS =  "UpdatedSecretsCount"
+UNMODIFIED_SECRETS = "UnmodifiedSecretsCount"
+NEW_REPLICATION_SECRETS = "NewReplicationSecretsCount"
+
+
+
+
+
 VAULT_AWS_SECRET_PATH = DEFAULT_VAULT_PATH if DEFAULT_VAULT_PATH.endswith("/") \
                                            else  f"{DEFAULT_VAULT_PATH}/"
 VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
@@ -18,11 +28,24 @@ AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
 AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") \
                         if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
 SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False") == "True"
+REPORT_SECRET_NAMES = os.getenv("REPORT_SECRET_NAMES", "False") == "True"
 ENVIRONMENT = os.getenv("ENVIRONMENT", "DEV")
 
 # Global variables
 aws_client = None
 aws_current_region = AWS_REGION
+execution_stats = {
+    CREATED_SECRETS: [],
+    UPDATED_SECRETS: [],
+    UNMODIFIED_SECRETS: [],
+    NEW_REPLICATION_SECRETS: []
+}
+error_stats = {
+  CREATED_SECRETS: [],
+  UPDATED_SECRETS: [],
+  UNMODIFIED_SECRETS: [],
+  NEW_REPLICATION_SECRETS: []
+}
 
 # TODO - Environment vars / execution
 #      - Simulation mode
@@ -300,7 +323,9 @@ def main():
     """
     print(report)
 
-
+    print(f"execution_stats: {execution_stats}")
+    print(f"error_stats: {error_stats}")
+    
     req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
     aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
                   if len(req_aws_filtered_secret_name) > 0\
