@@ -32,6 +32,26 @@ aws_current_region = AWS_REGION
 #      - Validate if still need split of admin namespace and child sub namespace since using GitHub OIDC
 #      - Version with single action (and script moved))
 
+def generate_execution_summary():
+    """Generate an execution summary for display as the job summary"""
+    # Example: Generate a simple summary
+    execution_status = "Success"
+    results_count = 10
+    summary_message = f"Script completed with status: {execution_status}. Processed {results_count} items."
+
+    # Write to GITHUB_OUTPUT
+    # For a single line output
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print(f'script_summary={summary_message}', file=fh)
+
+    # For multi-line output or complex data (e.g., JSON)
+    # delimiter = 'EOF'
+    # complex_data = {"status": execution_status, "count": results_count}
+    # with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+    #     print(f'complex_output<<{delimiter}', file=fh)
+    #     print(json.dumps(complex_data), file=fh)
+    #     print(delimiter, file=fh)
+
 
 def replicate_secret_change_to_new_regions(secret_name, added_regions):
     """Replicate a secret change to all regions"""
@@ -269,8 +289,17 @@ def initialize_clients():
 def main():
     """"Main function to demonstrate functionality"""
     initialize_clients()
-    test_str = "dev"
+
     print(f"Clients initialized successfully for environment: {ENVIRONMENT}")
+
+    report = """
+    This is the first line an  environment: {ENVIRONMENT}
+        The second line with an  environment: {ENVIRONMENT}
+        Another line
+    A Final line
+    """
+    print(report)
+
 
     req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
     aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
