@@ -87,7 +87,8 @@ def generate_execution_summary():
         Execution Status: {execution_status}
     """
 
-    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+#    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+    with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as fh:
         print(f'{report}', file=fh)
 
     # For multi-line output or complex data (e.g., JSON)
