@@ -142,6 +142,7 @@ def update_aws_secret(secret_name, secret_value):
     #   secretsmanager:UpdateSecret
     try:
         if not SIMULATION_MODE:
+            print(f"Value change detected for AWS secret with name {secret_name}, updating")
             aws_client.update_secret(
                 SecretId=secret_name,
                 SecretString=secret_value
@@ -231,10 +232,10 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
             aws_secret_value_str = json.dumps(aws_secret_value, sort_keys=True)
 
             if vault_secret_value_str != aws_secret_value_str:
-                print(f"Value change detected for AWS secret with name {aws_secret_name}, updating")
                 update_aws_secret(vault_secret_name_match, vault_secret_value_str)
             else:
-                print(f"No change detected to AWS Secret name {vault_secret_name_match}")
+                if not SIMULATION_MODE:
+                    print(f"No change detected to AWS Secret name {vault_secret_name_match}")
                 execution_stats[UNMODIFIED_SECRETS].append(vault_secret_name_match)
 
             # Possibly dispatch secret to newly configured regions
