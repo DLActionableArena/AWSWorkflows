@@ -74,17 +74,16 @@ def generate_execution_summary():
         execution_status = "Completed with errors, see the steps logs"
 
     report = f"""
-    Execution Report:
-        Secrets Counts:
-            Total: {total_secrets_count}
-            Newly Created: {created_secrets_count}
-            Existing Updated: {updated_secrets_count}
-            Existing Unmodified: {unmodified_secrets_count}
-            Newly Replicated: {replicated_secrets_count}
-        Errors Counts:
-            {error_report}
-        Simulation Mode: {SIMULATION_MODE}
-        Execution Status: {execution_status}
+    Secrets Counts:
+        Total: {total_secrets_count}
+        Newly Created: {created_secrets_count}
+        Existing Updated: {updated_secrets_count}
+        Existing Unmodified: {unmodified_secrets_count}
+        Newly Replicated: {replicated_secrets_count}
+    Errors Counts:
+        {error_report}
+    Simulation Mode: {SIMULATION_MODE}
+    Execution Status: {execution_status}
     """
 
     with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as fh:
