@@ -292,7 +292,7 @@ def main():
 
     print(f"Clients initialized successfully for environment: {ENVIRONMENT}")
 
-    report = """
+    report = f"""
     This is the first line an  environment: {ENVIRONMENT}
         The second line with an  environment: {ENVIRONMENT}
         Another line
