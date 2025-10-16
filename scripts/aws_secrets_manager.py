@@ -42,9 +42,7 @@ error_stats = {
 }
 
 # TODO -
-#      - Simulation mode
 #      - Environment execution support
-
 
 def generate_execution_summary():
     """Generate an execution summary for display as the job summary"""
@@ -298,6 +296,8 @@ def process_mock_vault_data(aws_secrets):
         "aws/services/nprod/AnotherAppSecret" : {"Secret": "47aaa505-4499-4de0-9baa-60635b5b2556", "Another secret": "86bbb505-4499-4de0-9bff-60635b5b250c"},
         "aws/services/nprod/Service/MutliRowSecret" : {"key2": "value2", "key1": "value1", "key3": "value3"}
     }
+
+    print(f"Secret Data retrieved from AWS: {aws_secrets}")
 
     # Iterate through all the secrets and process them one at a time
     for secret in mock_vault_data.items():
