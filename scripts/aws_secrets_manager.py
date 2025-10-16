@@ -9,14 +9,10 @@ DEFAULT_VAULT_PATH = "aws/services"
 AWS_SECRET_MANAGER="secretsmanager"
 AWS_SECURITY_TOKEN_SERVICE="sts"
 
-CREATED_SECRETS =  "CreatedSecretsCount"
-UPDATED_SECRETS =  "UpdatedSecretsCount"
-UNMODIFIED_SECRETS = "UnmodifiedSecretsCount"
-NEW_REPLICATION_SECRETS = "NewReplicationSecretsCount"
-
-
-
-
+CREATED_SECRETS =  "CreatedSecrets"
+UPDATED_SECRETS =  "UpdatedSecrets"
+UNMODIFIED_SECRETS = "UnmodifiedSecrets"
+NEW_REPLICATION_SECRETS = "NewReplicationSecrets"
 
 VAULT_AWS_SECRET_PATH = DEFAULT_VAULT_PATH if DEFAULT_VAULT_PATH.endswith("/") \
                                            else  f"{DEFAULT_VAULT_PATH}/"
@@ -28,7 +24,6 @@ AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
 AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") \
                         if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
 SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False") == "True"
-REPORT_SECRET_NAMES = os.getenv("REPORT_SECRET_NAMES", "False") == "True"
 ENVIRONMENT = os.getenv("ENVIRONMENT", "DEV")
 
 # Global variables
@@ -43,29 +38,57 @@ execution_stats = {
 error_stats = {
   CREATED_SECRETS: [],
   UPDATED_SECRETS: [],
-  UNMODIFIED_SECRETS: [],
-  NEW_REPLICATION_SECRETS: []
+  NEW_REPLICATION_SECRETS: [],
 }
 
-# TODO - Environment vars / execution
+# TODO -
 #      - Simulation mode
-#      - Report of execution (according to mode)
-
 #      - Environment execution support
-#      - Validate if still need split of admin namespace and child sub namespace since using GitHub OIDC
-#      - Version with single action (and script moved))
+
 
 def generate_execution_summary():
     """Generate an execution summary for display as the job summary"""
-    # Example: Generate a simple summary
-    execution_status = "Success"
-    results_count = 10
-    summary_message = f"Script completed with status: {execution_status}. Processed {results_count} items."
+    
+    created_secrets_count = len(execution_stats[CREATED_SECRETS])
+    updated_secrets_count = len(execution_stats[UPDATED_SECRETS])
+    unmodified_secrets_count = len(execution_stats[UNMODIFIED_SECRETS])
+    replicated_secrets_count = len(execution_stats[NEW_REPLICATION_SECRETS])
+    total_secrets_count = created_secrets_count + \
+                          updated_secrets_count + \
+                          unmodified_secrets_count
 
-    # Write to GITHUB_OUTPUT
-    # For a single line output
+    created_secrets_errors = len(error_stats[CREATED_SECRETS])
+    updated_secrets_errors = len(error_stats[UPDATED_SECRETS])
+    replicated_secrets_errors = len(error_stats[NEW_REPLICATION_SECRETS])
+
+    execution_status = "Completed Successfully"
+    error_report = "No Reported Errors"
+    if  created_secrets_errors > 0 or\
+        updated_secrets_errors > 0 or\
+        replicated_secrets_errors > 0:
+        error_report = f"""
+            Newly Created: {created_secrets_errors}
+            Existing Updated: {updated_secrets_errors}
+            Newly Replicated: {replicated_secrets_errors}
+        """
+        execution_status = "Completed with errors, see the steps logs"
+
+    report = f"""
+    Execution Report:
+        Secrets Counts:
+            Total: {total_secrets_count}
+            Newly Created: {created_secrets_count}
+            Existing Updated: {updated_secrets_count}
+            Existing Unmodified: {unmodified_secrets_count}
+            Newly Replicated: {replicated_secrets_count}
+        Errors Counts:
+            {error_report}
+        Simulation Mode: {SIMULATION_MODE}
+        Execution Status: {execution_status}
+    """
+
     with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-        print(f'script_summary={summary_message}', file=fh)
+        print(report, file=fh)
 
     # For multi-line output or complex data (e.g., JSON)
     # delimiter = 'EOF'
@@ -74,7 +97,6 @@ def generate_execution_summary():
     #     print(f'complex_output<<{delimiter}', file=fh)
     #     print(json.dumps(complex_data), file=fh)
     #     print(delimiter, file=fh)
-
 
 def replicate_secret_change_to_new_regions(secret_name, added_regions):
     """Replicate a secret change to all regions"""
@@ -87,6 +109,7 @@ def replicate_secret_change_to_new_regions(secret_name, added_regions):
             AddReplicaRegions=create_aws_secret_replicated_regions(added_regions)
         )
         print(f"Replicated secret {secret_name} to regions: {response}")
+        execution_stats[NEW_REPLICATION_SECRETS].append(secret_name)
         return response
     except Exception as e:
         print(f"Error replicating secret {secret_name}: {e}")
@@ -133,11 +156,14 @@ def update_aws_secret(secret_name, secret_value):
             SecretString=secret_value
         )
         print(f"Secret {secret_name} successfully updated.")
+        execution_stats[UPDATED_SECRETS].append(secret_name)
         return response
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
+        error_stats[UPDATED_SECRETS].append(secret_name)
     except Exception as e:
         print(f"Error updating secret {secret_name} : {e}")
+        error_stats[UPDATED_SECRETS].append(secret_name)
     return None
 
 def create_aws_secret_replicated_regions(replicate_regions):
@@ -166,17 +192,21 @@ def create_aws_secret(secret_name, secret_value):
                 SecretString=secret_value,
                 AddReplicaRegions=create_aws_secret_replicated_regions(AWS_REPLICATE_REGIONS)
             )
+            execution_stats[NEW_REPLICATION_SECRETS].append(secret_name)
         else:
             response = aws_client.create_secret(
                 Name=secret_name,
                 SecretString=secret_value
             )
         print(f"Secret {secret_name} successfully created.")
+        execution_stats[CREATED_SECRETS].append(secret_name)
         return response
     except aws_client.exceptions.ResourceExistsException:
         print(f"Secret {secret_name} already exists.")
+        error_stats[CREATED_SECRETS].append(secret_name)
     except Exception as e:
         print(f"Error creating secret {secret_name} : {e}")
+        error_stats[CREATED_SECRETS].append(secret_name)
 
     return None
 
@@ -217,6 +247,7 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
                 update_aws_secret(vault_secret_name_match, vault_secret_value_str)
             else:
                 print(f"No change detected to AWS Secret name {vault_secret_name_match}")
+                execution_stats[UNMODIFIED_SECRETS].append(vault_secret_name_match)
 
             # Possibly dispatch secret to newly configured regions
             process_secret_regions(vault_secret_name_match)
@@ -315,22 +346,12 @@ def main():
 
     print(f"Clients initialized successfully for environment: {ENVIRONMENT}")
 
-    report = f"""
-    This is the first line an  environment: {ENVIRONMENT}
-        The second line with an  environment: {ENVIRONMENT}
-        Another line
-    A Final line
-    """
-    print(report)
-
-    print(f"execution_stats: {execution_stats}")
-    print(f"error_stats: {error_stats}")
-    
     req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
     aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
                   if len(req_aws_filtered_secret_name) > 0\
                   else get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
+    generate_execution_summary()
 
 if __name__ == "__main__":
     main()
