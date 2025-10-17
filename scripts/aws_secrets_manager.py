@@ -24,7 +24,7 @@ AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
 AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") \
                         if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
 SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False") == "True"
-ENVIRONMENT = os.getenv("ENVIRONMENT", "DEV")
+ENVIRONMENT = os.getenv("ENVIRONMENT", "dev")
 
 # Global variables
 aws_client = None
@@ -243,21 +243,23 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     # Create a new AWS secret and possibly replicate to other regions
     create_aws_secret(vault_secret_name_match, vault_secret_value_str)
 
-def get_secret_value(secret_name):
+def get_aws_secret_value(secret_name):
     """Retrieve a specific secret value from AWS Secrets Manager"""
     try:
-        response = aws_client.get_secret_value(SecretId=secret_name)
-        return response.get("SecretString", None)
+        return aws_client.get_secret_value(
+            SecretId=secret_name
+        ).response.get("SecretString", None)
+        #return response.get("SecretString", None)
     except Exception as e:
         print(f"Error retrieving secret value{secret_name}: {e}")
         return None
 
-def get_specific_secret(secret_name):
+def get_specific_aws_secret(secret_name):
     """Retrieve a specific AWS secret"""
     secret = {}
     try:
         print(f"Retrieving specific secret_name {secret_name}")
-        secret_value = get_secret_value(secret_name)
+        secret_value = get_aws_secret_value(secret_name)
         if secret_value:
             secret[secret_name] = json.loads(secret_value)
             print(f"Retrieved secret {secret_name} with value: {secret[secret_name]}")
@@ -278,7 +280,7 @@ def get_all_aws_secrets():
     for secret in secrets_details:
         try:
             secret_name = secret["Name"]
-            secrets[secret_name] = json.loads(get_secret_value(secret_name))
+            secrets[secret_name] = json.loads(get_aws_secret_value(secret_name))
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
@@ -301,8 +303,7 @@ def process_mock_vault_data(aws_secrets):
     # Secret Data retrieved from AWS: 
     # {
     #   'nprod/SyncAction': {'BogusToken': '989e9ab0-de1e-4a12-9bad-a7b531cda777'},
-    #   'nprod/AnotherAppSecret': {'Another secret': '86bbb505-4499-4de0-9bff-60635b5b250c',
-    #   'Secret': '47aaa505-4499-4de0-9baa-60635b5b2556'}, 
+    #   'nprod/AnotherAppSecret': {'Another secret': '86bbb505-4499-4de0-9bff-60635b5b250c','Secret': '47aaa505-4499-4de0-9baa-60635b5b2556'}, 
     #   'nprod/Service/MutliRowSecret': {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}, 
     #   'app/Secrets': {'BogusKey': 'BogusSecret', 'dumb-secret': '789'}, 
     #   'app1/Secrets': {'secret1': 'value1a'}, 
@@ -348,7 +349,7 @@ def main():
         print("Executing in simulation mode : No modifications will be performed")
 
     req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
-    aws_secrets = get_specific_secret(req_aws_filtered_secret_name)\
+    aws_secrets = get_specific_aws_secret(req_aws_filtered_secret_name)\
                   if len(req_aws_filtered_secret_name) > 0\
                   else get_all_aws_secrets()
     process_mock_vault_data(aws_secrets)
