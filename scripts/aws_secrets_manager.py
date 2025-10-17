@@ -352,6 +352,7 @@ def main():
     aws_secrets = get_specific_aws_secret(req_aws_filtered_secret_name)\
                   if len(req_aws_filtered_secret_name) > 0\
                   else get_all_aws_secrets()
+    print(f"ALL AWS secrets to validate : {aws_secrets}")
     process_mock_vault_data(aws_secrets)
     generate_execution_summary()
 
