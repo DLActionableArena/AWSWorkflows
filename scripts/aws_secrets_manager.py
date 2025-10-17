@@ -85,7 +85,7 @@ def generate_execution_summary():
     """
 
     with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as fh:
-        print(f'{report}', file=fh)
+        print(f"{report}", file=fh)
 
 def replicate_secret_change_to_new_regions(secret_name, added_regions):
     """Replicate a secret change to all regions"""
@@ -352,7 +352,7 @@ def main():
     aws_secrets = get_specific_aws_secret(req_aws_filtered_secret_name)\
                   if len(req_aws_filtered_secret_name) > 0\
                   else get_all_aws_secrets()
-    print(f"ALL AWS secrets to validate : {aws_secrets}")
+
     process_mock_vault_data(aws_secrets)
     generate_execution_summary()
 
