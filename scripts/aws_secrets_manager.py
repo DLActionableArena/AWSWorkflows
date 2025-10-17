@@ -248,7 +248,7 @@ def get_aws_secret_value(secret_name):
     try:
         return aws_client.get_secret_value(
             SecretId=secret_name
-        ).response.get("SecretString", None)
+        ).get("SecretString", None)
         #return response.get("SecretString", None)
     except Exception as e:
         print(f"Error retrieving secret value{secret_name}: {e}")
