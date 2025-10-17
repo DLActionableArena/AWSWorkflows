@@ -20,7 +20,7 @@ VAULT_AWS_SECRET_PATH_LEN = len(VAULT_AWS_SECRET_PATH)
 
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_ROLE_TO_ASSUME = os.getenv("AWS_ROLE_TO_ASSUME")
-AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "")
+AWS_FILTER_SECRET_NAME = os.getenv("AWS_FILTER_SECRET_NAME", "").strip()
 AWS_REPLICATE_REGIONS = os.getenv("AWS_REPLICATE_REGIONS", "").split(",") \
                         if len(os.getenv("AWS_REPLICATE_REGIONS", "")) > 0 else []
 SIMULATION_MODE = os.getenv("SIMULATION_MODE", "False") == "True"
@@ -210,7 +210,7 @@ def process_secrets(aws_secrets, vault_secret_name, vault_secret_value):
     """Process the specified secrets path and data"""
     # Convert the secret value to JSON string for change validation
     vault_secret_name_match =  extract_secret_name(vault_secret_name)
-    req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME.strip()
+    req_aws_filtered_secret_name = AWS_FILTER_SECRET_NAME
     if  len(req_aws_filtered_secret_name) > 0 and \
         vault_secret_name_match != req_aws_filtered_secret_name:
         print(f"Skip secret name: {vault_secret_name_match} no match to filtered: {req_aws_filtered_secret_name}")
