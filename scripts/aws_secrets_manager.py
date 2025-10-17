@@ -147,8 +147,8 @@ def update_aws_secret(secret_name, secret_value):
             )
             print(f"Secret {secret_name} successfully updated.")
         execution_stats[UPDATED_SECRETS].append(secret_name)
-    except aws_client.exceptions.ResourceExistsException:
-        print(f"Secret {secret_name} already exists.")
+    except aws_client.exceptions.ResourceNotFoundException:
+        print(f"Secret {secret_name} does not exists.")
         error_stats[UPDATED_SECRETS].append(secret_name)
     except Exception as e:
         print(f"Error updating secret {secret_name} : {e}")
