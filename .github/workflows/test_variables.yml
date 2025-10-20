@@ -2,7 +2,7 @@ name: Test Action Variables
 on:
   workflow_dispatch
 
-job:
+jobs:
   print_variables:
     runs-on: ubuntu-latest
     steps:
