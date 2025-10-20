@@ -1,0 +1,15 @@
+name: Test Action Variables
+on:
+  workflow_dispatch
+
+job:
+  print_variables:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print some Variables
+        shell: sh
+        run: |
+          echo "github.action_path: ${{github.action_path}}"
+          echo "github.base_ref: ${{github.base_ref}}"
+          echo "github.event_path: ${{github.event_path}}"
+          
