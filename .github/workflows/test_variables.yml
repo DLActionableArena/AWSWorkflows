@@ -12,4 +12,8 @@ jobs:
           echo "github.action_path: ${{github.action_path}}"
           echo "github.base_ref: ${{github.base_ref}}"
           echo "github.event_path: ${{github.event_path}}"
+          echo "github.ref: ${{github.ref}}"
+          echo "github.ref_name: ${{github.ref_name}}"
+          
+          
           
