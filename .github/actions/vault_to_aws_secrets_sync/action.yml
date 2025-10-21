@@ -48,7 +48,7 @@ runs:
 #        role-session-name:      ${{ inputs.aws_role_session_name}}
 
     - name: Vault To AWS Secrets Sync Script runs
-      shell: shell
+      shell: sh
       env:
         AWS_FILTER_SECRET_NAME: ${{ inputs.filtered_secret_name }}
         AWS_REPLICATE_REGIONS:  ${{ inputs.aws_replicated_regions }}
