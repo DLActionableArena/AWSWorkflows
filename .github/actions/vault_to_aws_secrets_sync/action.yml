@@ -49,13 +49,14 @@ runs:
 
     - name: Vault To AWS Secrets Sync Script runs
       shell: sh
+#      working-directory: ./scripts
       env:
         AWS_FILTER_SECRET_NAME: ${{ inputs.filtered_secret_name }}
         AWS_REPLICATE_REGIONS:  ${{ inputs.aws_replicated_regions }}
         SIMULATION_MODE:        ${{ inputs.simulation_mode }}
         ENVIRONMENT:            ${{ inputs.environment }}
       run: |
-        python ./scripts/aws_secrets_manage.py
+        python ./scripts/aws_secrets_manager.py
 #        python ${{ github.action_path }}/aws_secrets_manage.py
         
         
