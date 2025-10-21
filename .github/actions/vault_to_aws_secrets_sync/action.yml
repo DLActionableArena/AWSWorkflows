@@ -1,0 +1,67 @@
+name: Vault To AWS Secrets Sync
+description: Synchonoze HashiCorp Vault Secrets to AWS Secrets Manager
+
+inputs:
+  filtered_secret_name:
+    description: "Secret Name Filter (optional)"
+    required: false
+    default: ""
+    type: string
+  environment:
+    description: "Target Environment"
+    required: false
+    default: "dev"
+    type: string
+  simulation_mode:
+    description: "Simulation mode (no action performed)"
+    required: false
+    type: string
+    default: "False"
+  aws_replicated_regions:
+    description: "AWS Replicated Regions"
+    required: false
+    default: ""
+    type: string
+  aws_role_to_assume:
+    description: "AWS Role to Assume"
+    required: true
+    type: string
+  aws_region:
+    description: "AWS Main Region"
+    required: true
+    default: "us-east-2"
+    type: string
+  aws_role_session_name:
+    description: "AWS Role Session Name"
+    required: false
+    default: "AWSSecretsSync"
+    type: string
+
+runs:
+  using: composite
+  
+  permissions:
+      id-token: write
+      contents: read
+
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup AWS Authentication though GitHub OIDC
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume:         ${{ inputs.aws_role_to_assume }}
+        aws-region:             ${{ inputs.aws_region }}
+        role-session-name:      ${{ inputs.aws_role_session_name}}
+
+    - name: Vault To AWS Secrets Sync Script runs
+      shell: shell
+      env:
+        AWS_FILTER_SECRET_NAME: ${{ inputs.filtered_secret_name }}
+        AWS_REPLICATE_REGIONS:  ${{ inputs.aws_replicated_regions }}
+        SIMULATION_MODE:        ${{ inputs.simulation_mode }}
+        ENVIRONMENT:            ${{ inputs.environment }}
+      run: |
+        python ..scripts/aws_secrets_manage.py
+#        python ${{ github.action_path }}/../scripts/aws_secrets_manage.py
