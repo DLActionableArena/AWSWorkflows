@@ -47,6 +47,10 @@ runs:
         aws-region:             ${{ inputs.aws_region }}
         role-session-name:      ${{ inputs.aws_role_session_name}}
 
+    - name: Print got here
+      run: |
+        echo "Hi, i am here now !!!"
+
     - name: Vault To AWS Secrets Sync Script runs
       shell: shell
       env:
