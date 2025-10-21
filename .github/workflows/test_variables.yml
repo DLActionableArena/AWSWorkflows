@@ -12,6 +12,7 @@ jobs:
           varx: 
         run: |
           echo "github.action_path: ${{github.action_path}}"
+          echo "github.workspace: ${{github.workspace}}"
           echo "github.base_ref: ${{github.base_ref || 'BogusValue'}}"
           echo "github.event_path: ${{github.event_path}}"
           echo "github.ref: ${{github.ref}}"
