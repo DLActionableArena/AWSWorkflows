@@ -40,17 +40,12 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup AWS Authentication though GitHub OIDC
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume:         ${{ inputs.aws_role_to_assume }}
-        aws-region:             ${{ inputs.aws_region }}
-        role-session-name:      ${{ inputs.aws_role_session_name}}
-
-    - name: Print got here
-      shell: sh
-      run: |
-        echo "Hi, i am here now !!!"
+#    - name: Setup AWS Authentication though GitHub OIDC
+#      uses: aws-actions/configure-aws-credentials@v2
+#      with:
+#        role-to-assume:         ${{ inputs.aws_role_to_assume }}
+#        aws-region:             ${{ inputs.aws_region }}
+#        role-session-name:      ${{ inputs.aws_role_session_name}}
 
     - name: Vault To AWS Secrets Sync Script runs
       shell: shell
@@ -60,5 +55,6 @@ runs:
         SIMULATION_MODE:        ${{ inputs.simulation_mode }}
         ENVIRONMENT:            ${{ inputs.environment }}
       run: |
-        python ./scripts/aws_secrets_manage.py
-#        python ${{ github.action_path }}/../scripts/aws_secrets_manage.py
+        python ${{ github.action_path }}/aws_secrets_manage.py
+#        python ./scripts/aws_secrets_manage.py
+        
