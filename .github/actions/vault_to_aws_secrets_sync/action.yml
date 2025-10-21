@@ -48,6 +48,7 @@ runs:
         role-session-name:      ${{ inputs.aws_role_session_name}}
 
     - name: Print got here
+      shell: sh
       run: |
         echo "Hi, i am here now !!!"
 
