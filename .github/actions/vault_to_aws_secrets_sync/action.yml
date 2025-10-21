@@ -45,9 +45,6 @@ runs:
       contents: read
 
   steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
     - name: Setup AWS Authentication though GitHub OIDC
       uses: aws-actions/configure-aws-credentials@v2
       with:
