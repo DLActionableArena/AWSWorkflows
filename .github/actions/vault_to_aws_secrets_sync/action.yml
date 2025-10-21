@@ -55,5 +55,5 @@ runs:
         SIMULATION_MODE:        ${{ inputs.simulation_mode }}
         ENVIRONMENT:            ${{ inputs.environment }}
       run: |
-        python ..scripts/aws_secrets_manage.py
+        python ./scripts/aws_secrets_manage.py
 #        python ${{ github.action_path }}/../scripts/aws_secrets_manage.py
