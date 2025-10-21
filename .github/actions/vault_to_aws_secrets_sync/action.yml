@@ -22,20 +22,20 @@ inputs:
     required: false
     default: ""
     type: string
-  aws_role_to_assume:
-    description: "AWS Role to Assume"
-    required: true
-    type: string
-  aws_region:
-    description: "AWS Main Region"
-    required: true
-    default: "us-east-2"
-    type: string
-  aws_role_session_name:
-    description: "AWS Role Session Name"
-    required: false
-    default: "AWSSecretsSync"
-    type: string
+#  aws_role_to_assume:
+#    description: "AWS Role to Assume"
+#    required: true
+#    type: string
+#  aws_region:
+#    description: "AWS Main Region"
+#    required: true
+#    default: "us-east-2"
+#    type: string
+#  aws_role_session_name:
+#    description: "AWS Role Session Name"
+#    required: false
+#    default: "AWSSecretsSync"
+#    type: string
 
 runs:
   using: composite
