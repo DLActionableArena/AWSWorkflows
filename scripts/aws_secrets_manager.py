@@ -344,7 +344,8 @@ def main():
     """"Main function to demonstrate functionality"""
     initialize_clients()
 
-    print(f"Clients initialized successfully for environment: {ENVIRONMENT}")
+    print(f"Clients initialized successfully for environment: {ENVIRONMENT} and filtering: {AWS_FILTER_SECRET_NAME}")
+
     if SIMULATION_MODE:
         print("Executing in simulation mode : No modifications will be performed")
 
