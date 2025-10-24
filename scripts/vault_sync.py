@@ -15,9 +15,47 @@ VAULT_SECRET_ID = os.getenv("VAULT_SECRET_ID")
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY_ID = os.getenv("AWS_SECRET_ACCESS_KEY_ID")
+AWS_ASSUMED_ROLE_NAME = os.getenv("AWS_ASSUMED_ROLE_NAME")
+AWS_ASSUMED_ROLE_ARN = os.getenv("AWS_ASSUMED_ROLE_ARN")
+AWS_DYNAMIC_SECRETS_ENGINE_MOUNT_POINT = os.getenv("AWS_DYNAMIC_SECRETS_ENGINE_MOUNT_POINT", "aws_dynamic_secrets")
 
 aws_client = None
 vault_client = None
+
+# https://python-hvac.org/en/stable/usage/secrets_engines/aws.html
+def get_aws_dynamic_credentials_from_vault():
+    """Retrieve AWS credentials from vault AWS secrets engines"""
+    global vault_client
+
+    list_roles_response = vault_client.secrets.aws.list_roles(
+        mount_point="aws_dynamic_secrets"
+    )
+    print(f"AWS Roles are: {list_roles_response}")
+
+    # Rotate the root credentials
+    # client.secrets.aws.rotate_root_iam_credentials()
+
+    # Retrieve credentials for the current operations
+    aws_dynamic_creds = vault_client.secrets.aws.generate_credentials(
+        name=AWS_ASSUMED_ROLE_NAME,
+        mount_point=AWS_DYNAMIC_SECRETS_ENGINE_MOUNT_POINT
+ #       ,role_arn=AWS_ASSUMED_ROLE_ARN
+ #       
+ #       ,endpoint="sts"
+    )
+    print(f"aws_dynamic_creds: {aws_dynamic_creds}")
+
+def list_vault_secrets():
+    """List existing vault secrets"""
+    global vault_client
+    secrets = vault_client.secrets.kv.v2.list_secrets(
+        mount_point="kv",
+        path="applications"
+    )
+    print(f"Test secrets: {secrets}")
+
+
+
 
 def initialize_clients():
     """Initialize HashiCorp Vault and AWS Clients"""
@@ -134,6 +172,10 @@ def main():
         except Exception as e:
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
+
+    print("About to test AWS credentials...")
+    list_vault_secrets()
+    get_aws_dynamic_credentials_from_vault()
 
 if __name__ == "__main__":
     main()
