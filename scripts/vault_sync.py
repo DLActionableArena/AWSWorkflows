@@ -36,6 +36,7 @@ def get_aws_dynamic_credentials_from_vault():
     # client.secrets.aws.rotate_root_iam_credentials()
 
     # Retrieve credentials for the current operations
+    # Will block to generate credentials, which sould be 10-15 sec in general
     aws_dynamic_creds = vault_client.secrets.aws.generate_credentials(
         name=AWS_ASSUMED_ROLE_NAME,
         mount_point=AWS_DYNAMIC_SECRETS_ENGINE_MOUNT_POINT
@@ -44,6 +45,58 @@ def get_aws_dynamic_credentials_from_vault():
  #       ,endpoint="sts"
     )
     print(f"aws_dynamic_creds: {aws_dynamic_creds}")
+
+    # aws_dynamic_creds: {
+	# 'request_id': '22886e7f-fbd2-98e3-4cf0-34eba76dbbc6', 
+	# 'lease_id': 'aws_dynamic_secrets/creds/AWS_SECRETS_SYNC_ROLE/Z0yFYkSj0yubANm0OA5Lzbyx', 
+	# 'renewable': False, 
+	# 'lease_duration': 3599, 
+	# 'data': {
+	# 	'access_key': 'ASIAVUEFWSH5CY3FSLXF', 
+	# 	'arn': 'arn:aws:sts::386827457018:assumed-role/AWS_SECRETS_SYNC_ROLE/vault-approle-AWS_SECRETS_SYNC_ROLE-1761588617-LW3mlHTt49SKDNCDj', 
+	# 	'secret_key': 'eDqJgu1n30LBGpHn6ANDAMwERuSu+V/arCW0B0Pc', 
+	# 	'security_token': 'IQoJb3JpZ2luX2VjEPL//////////wEaCXVzLWVhc3QtMiJHMEUCIQDBAFc....', 
+	# 	'session_token': 'IQoJb3JpZ2luX2VjEPL//////////wEaCXVzLWVhc3QtMiJHMEUCIQDBAFcB....', 
+	# 	'ttl': 3599
+	# 	}, 
+	# 'wrap_info': None, 
+	# 'warnings': None, 
+	# 'auth': None, 
+	# 'mount_type': 'aws'
+}
+
+    # Role Trust Relationaship
+    # Trust relationship:
+    # {
+    #     "Version": "2012-10-17",
+    #     "Statement": [
+    #         {
+    #             "Effect": "Allow",
+    #             "Principal": {
+    #                 "Federated": "arn:aws:iam::386827457018:oidc-provider/token.actions.githubusercontent.com"
+    #             },
+    #             "Action": "sts:AssumeRoleWithWebIdentity",
+    #             "Condition": {
+    #                 "StringEquals": {
+    #                     "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+    #                 },
+    #                 "StringLike": {
+    #                     "token.actions.githubusercontent.com:sub": "repo:DLActionableArena/AWSWorkflows:environment:*"
+    #                 }
+    #             }
+    #         },
+    #         {
+    #             "Effect": "Allow",
+    #             "Principal": {
+    #                 "AWS": "arn:aws:iam::386827457018:user/VaultAWSSecretsEngineServiceAccount"
+    #             },
+    #             "Action": "sts:AssumeRole"
+    #         }
+    #     ]
+    # }
+
+
+
 
 def list_vault_secrets():
     """List existing vault secrets"""
