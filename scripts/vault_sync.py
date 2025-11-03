@@ -6,17 +6,20 @@ DEFAULT_VAULT_ADDR = 'http://localhost:8200'
 DEFAULT_VAULT_KV_PATH = 'kv'
 DEFAULT_VAULT_SECRET_PATH = 'aws_secrets'
 DEFAULT_AWS_REGION = 'us-east-2'
+AWS_SECRETS_MANAGER = "secretsmanager"
+AWS_SECURITY_TOKEN_SERVICE = "sts"
 
+VERIFY_CERTIFICATE = os.getenv("VERIFY_CERTIFICATE", "False") == "True"
 VAULT_ADDR = os.getenv("VAULT_ADDR", DEFAULT_VAULT_ADDR)
 VAULT_KV_PATH = os.getenv("VAULT_KV_PATH", DEFAULT_VAULT_KV_PATH)
 VAULT_SECRET_PATH = os.getenv("VAULT_SECRET_PATH ", DEFAULT_VAULT_SECRET_PATH)
 VAULT_ROLE_ID = os.getenv("VAULT_ROLE_ID")
 VAULT_SECRET_ID = os.getenv("VAULT_SECRET_ID")
 AWS_REGION = os.getenv("AWS_REGION", DEFAULT_AWS_REGION)
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY_ID = os.getenv("AWS_SECRET_ACCESS_KEY_ID")
+#AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+#AWS_SECRET_ACCESS_KEY_ID = os.getenv("AWS_SECRET_ACCESS_KEY_ID")
 AWS_ASSUMED_ROLE_NAME = os.getenv("AWS_ASSUMED_ROLE_NAME")
-AWS_ASSUMED_ROLE_ARN = os.getenv("AWS_ASSUMED_ROLE_ARN")
+#AWS_ASSUMED_ROLE_ARN = os.getenv("AWS_ASSUMED_ROLE_ARN")
 AWS_DYNAMIC_SECRETS_ENGINE_MOUNT_POINT = os.getenv("AWS_DYNAMIC_SECRETS_ENGINE_MOUNT_POINT", "aws_dynamic_secrets")
 
 aws_client = None
@@ -46,6 +49,22 @@ def get_aws_dynamic_credentials_from_vault():
     )
     print(f"aws_dynamic_creds: {aws_dynamic_creds}")
 
+    # Connect to AWS using temporary credentials
+    if aws_dynamic_creds and \
+       aws_dynamic_creds["data"] and \
+       aws_dynamic_creds["data"]["access_key"] and \
+       aws_dynamic_creds["data"]["secret_key"] and \
+       aws_dynamic_creds["data"]["security_token"]:    
+       initialize_aws(
+          AWS_REGION,
+          aws_dynamic_creds["data"]["access_key"],
+          aws_dynamic_creds["data"]["secret_key"],
+          aws_dynamic_creds["data"]["security_token"]
+    )
+       # print(f"Using the following credentials: region_name:{region_name} access_key: {access_key} secret_key: {secret_key} ")
+    else:
+       print(f"Missing one or more arg, data: {aws_dynamic_creds}")
+
     # aws_dynamic_creds: {
 	# 'request_id': '22886e7f-fbd2-98e3-4cf0-34eba76dbbc6', 
 	# 'lease_id': 'aws_dynamic_secrets/creds/AWS_SECRETS_SYNC_ROLE/Z0yFYkSj0yubANm0OA5Lzbyx', 
@@ -63,7 +82,6 @@ def get_aws_dynamic_credentials_from_vault():
 	# 'warnings': None, 
 	# 'auth': None, 
 	# 'mount_type': 'aws'
-}
 
     # Role Trust Relationaship
     # Trust relationship:
@@ -108,13 +126,56 @@ def list_vault_secrets():
     print(f"Test secrets: {secrets}")
 
 
+def initialize_aws(
+        region_name_arg,
+        access_key_arg,
+        secret_key_arg,
+        security_token_arg
+    ):
+    """Intialize the AWS Client"""
+    global aws_client
 
+    # NOTE: The following permissions originally added to the service account/root does not seem to be required i=on this side
+    #       just in the tole trust relationship only
+    #   {
+	#		"Effect": "Allow",
+	#		"Action": "sts:AssumeRole",
+	#		"Resource": "arn:aws:iam::386827457018:role/AWS_SECRETS_SYNC_ROLE"
+	#	}
 
-def initialize_clients():
-    """Initialize HashiCorp Vault and AWS Clients"""
-    global aws_client, vault_client
+    try:
+        # Initialize AWS client
+        session = boto3.Session(
+            region_name = region_name_arg, # AWS_REGION,
+            aws_access_key_id = access_key_arg, # AWS_ACCESS_KEY_ID,
+            aws_secret_access_key = secret_key_arg, #AWS_SECRET_ACCESS_KEY_ID
+            aws_session_token = security_token_arg
+        )
 
-    # Initialize Vault client
+        # Suppress SSL warnings if needed
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        sts_client = session.client(
+            AWS_SECURITY_TOKEN_SERVICE,
+            verify=VERIFY_CERTIFICATE
+        )
+        sts_client.get_caller_identity()
+
+        aws_client = session.client(
+            AWS_SECRETS_MANAGER,
+            verify=VERIFY_CERTIFICATE
+        )
+
+        return True
+    except Exception as e:
+        print(f"Error initializing AWS client: {e}")
+        return False
+
+def initialize_vault():
+    """Initialize the HashiCorp Vault client"""
+    global vault_client
+
     vault_client = hvac.Client(url=VAULT_ADDR)
     if VAULT_ROLE_ID and VAULT_SECRET_ID:
         auth_response = vault_client.auth.approle.login(
@@ -125,30 +186,16 @@ def initialize_clients():
             raise Exception("Vault authentication failed")
     else:
         raise Exception("Vault ROLE_ID and SECRET_ID must be set")
+    
+    # Suppress SSL warnings if needed
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    try:
-        # Initialize AWS client
-        aws_client = boto3.client(
-            'secretsmanager',
-            region_name=AWS_REGION,
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY_ID
-        )
-
-        # Suppress SSL warnings if needed
-        import urllib3
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-        print("Testing clients connections")
-        if vault_client.is_authenticated():
-            print("Vault client authenticated successfully")
-        else:
-            raise Exception("Vault client authentication failed")
-
-        return True
-    except Exception as e:
-        print(f"Error initializing AWS client: {e}")
-        return False
+    print("Testing clients connections")
+    if vault_client.is_authenticated():
+        print("Vault client authenticated successfully")
+    else:
+        raise Exception("Vault client authentication failed")
 
 def get_all_aws_secrets():
     """Retrieve all AWS secrets"""
@@ -201,9 +248,15 @@ def get_secret_rotation_info(secret_name):
 
 def main():
     """"Main function to demonstrate functionality"""
-    initialize_clients()
-    print("Clients initialized successfully")
+    initialize_vault()
+    print("Vault Client initialized successfully")
 
+    print("About to test AWS credentials...")
+    list_vault_secrets()
+    get_aws_dynamic_credentials_from_vault()
+
+
+    # Extract and process AWS secrets
     secrets = get_all_aws_secrets()
     print(f"Retrieved {len(secrets)} secrets from AWS Secrets Manager: ", secrets)
 
@@ -226,9 +279,6 @@ def main():
             print(f"Error retrieving details for secret {secret_name}: {e}")
             continue
 
-    print("About to test AWS credentials...")
-    list_vault_secrets()
-    get_aws_dynamic_credentials_from_vault()
-
+    
 if __name__ == "__main__":
     main()
