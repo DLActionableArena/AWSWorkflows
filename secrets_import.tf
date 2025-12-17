@@ -1,0 +1,4 @@
+TODOimport { to = aws_secretsmanager_secret_version.application3 identity = { secret_id = arn:aws:secretsmanager:us-east-2:386827457018:secret:application3-2TCryq version_id = terraform-20251216183030347200000001 } }
+import { to = aws_secretsmanager_secret_version.application1 identity = { secret_id = arn:aws:secretsmanager:us-east-2:386827457018:secret:application1-uycBtf version_id = terraform-20251216173132178700000001 } }
+import { to = aws_secretsmanager_secret_version.application2 identity = { secret_id = arn:aws:secretsmanager:us-east-2:386827457018:secret:application2-BTq8co version_id = terraform-20251216173132178700000003 } }
+import { to = aws_secretsmanager_secret_version.application4 identity = { secret_id = arn:aws:secretsmanager:us-east-2:386827457018:secret:application4-6KHkhi version_id = terraform-20251216182644578600000002 } }
